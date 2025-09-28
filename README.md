@@ -100,8 +100,8 @@ A comprehensive society management system with role-based authentication for dif
 
 ### Login Pages
 
-- **Member Login**: `/login` - OTP-based authentication
-- **Admin/Staff Login**: `/login` - Email/password authentication
+- **Member Login**: `/` - OTP-based authentication
+- **Admin/Staff Login**: `/admin/login` - Email/password authentication
 - **Setup**: `/setup` - Create initial admin account
 
 ### Default Admin Credentials

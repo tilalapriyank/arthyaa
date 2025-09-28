@@ -70,7 +70,7 @@ export function verifyToken(token: string): AuthUser | null {
   }
 }
 
-// Email/Password login for Admin, Society Admin
+// Email/Password login for Admin, Society Admin (with role requirement)
 export async function loginWithEmailPassword(
   email: string,
   password: string,
@@ -89,6 +89,113 @@ export async function loginWithEmailPassword(
         email: validatedEmail,
         role,
         status: 'ACTIVE'
+      }
+    });
+
+    if (!user || !user.password) {
+      // Log failed attempt
+      await prisma.auditLog.create({
+        data: {
+          action: 'LOGIN_FAILED',
+          details: { email: validatedEmail, reason: 'User not found or no password' },
+          ipAddress,
+          userAgent
+        }
+      });
+      return {
+        success: false,
+        message: 'Invalid credentials'
+      };
+    }
+
+
+    const isValidPassword = await bcrypt.compare(validatedPassword, user.password);
+    if (!isValidPassword) {
+      await prisma.auditLog.create({
+        data: {
+          userId: user.id,
+          action: 'LOGIN_FAILED',
+          details: { email: validatedEmail, reason: 'Invalid password' },
+          ipAddress,
+          userAgent
+        }
+      });
+      return {
+        success: false,
+        message: 'Invalid credentials'
+      };
+    }
+
+
+    const authUser: AuthUser = {
+      id: user.id,
+      email: user.email || undefined,
+      phone: user.phone || undefined,
+      role: user.role,
+      firstName: user.firstName || undefined,
+      lastName: user.lastName || undefined,
+      isSecretary: user.isSecretary,
+    };
+
+    const token = generateToken(authUser);
+
+    // Create session
+    await prisma.userSession.create({
+      data: {
+        userId: user.id,
+        token,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        ipAddress,
+        userAgent
+      }
+    });
+
+    // Log successful login
+    await prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        action: 'LOGIN_SUCCESS',
+        details: { email: validatedEmail },
+        ipAddress,
+        userAgent
+      }
+    });
+
+    return {
+      success: true,
+      user: authUser,
+      token
+    };
+  } catch (error) {
+    console.error('Login error:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Internal server error'
+    };
+  }
+}
+
+// Email/Password login with automatic role detection (improved version)
+export async function loginWithEmailOnly(
+  email: string,
+  password: string,
+  ipAddress?: string,
+  userAgent?: string
+): Promise<LoginResult> {
+  try {
+    // Validate input
+    const validatedEmail = validateInput(emailSchema, email);
+    const validatedPassword = validateInput(passwordSchema, password);
+
+    // Find user by email only, let the system determine the role
+    const user = await prisma.user.findFirst({
+      where: {
+        email: validatedEmail,
+        status: 'ACTIVE',
+        // Exclude MEMBER role since they use OTP login
+        role: {
+          in: ['ADMIN', 'SOCIETY_ADMIN']
+        }
       }
     });
 

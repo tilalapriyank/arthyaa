@@ -30,7 +30,7 @@ export default function SocietyAdminDashboard() {
       if (data.success && data.user.role === 'SOCIETY_ADMIN') {
         setUser(data.user);
       } else {
-        router.push('/login');
+        router.push('/admin/login');
       }
     } catch (error) {
       router.push('/login');

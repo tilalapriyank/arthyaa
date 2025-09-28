@@ -187,7 +187,7 @@ async function main() {
   console.log('• Member Dashboard:       /member/dashboard');
   console.log('\n🧪 To test:');
   console.log('1. Run: npm run dev');
-  console.log('2. Visit: http://localhost:3000/login');
+  console.log('2. Visit: http://localhost:3000/ (Member Login) or http://localhost:3000/admin/login (Admin Login)');
   console.log('3. Test each role with the credentials above');
 }
 

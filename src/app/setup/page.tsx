@@ -46,7 +46,7 @@ export default function SetupPage() {
       if (data.success) {
         setSuccess(true);
         setTimeout(() => {
-          router.push('/login');
+          router.push('/admin/login');
         }, 2000);
       } else {
         setError(data.message || 'Setup failed');

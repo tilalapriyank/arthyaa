@@ -59,6 +59,12 @@ export const adminLoginSchema = z.object({
   role: userRoleSchema.refine(role => role !== 'MEMBER', 'Invalid role for admin login'),
 });
 
+// Simple admin login schema (email + password only, role auto-detected)
+export const simpleAdminLoginSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+});
+
 // Password reset schemas
 export const passwordResetRequestSchema = z.object({
   email: emailSchema,

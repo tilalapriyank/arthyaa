@@ -30,7 +30,7 @@ export default function MemberDashboard() {
       if (data.success && data.user.role === 'MEMBER') {
         setUser(data.user);
       } else {
-        router.push('/login');
+        router.push('/');
       }
     } catch (error) {
       router.push('/login');
