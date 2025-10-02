@@ -81,129 +81,47 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center p-2 sm:p-4 overflow-x-hidden">
-      <div className="w-full max-w-xs sm:max-w-4xl lg:max-w-6xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
-          <div className="flex flex-col lg:flex-row min-h-[450px] sm:min-h-[500px] lg:min-h-[600px] max-h-screen lg:max-h-none overflow-y-auto lg:overflow-y-visible">
-            {/* Left Section - Enhanced Blue Gradient Branding */}
-            <div className="lg:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 relative overflow-hidden flex-shrink-0">
-              {/* Animated Background Elements */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-indigo-600/20"></div>
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
-              
-              {/* Enhanced Wavy Separator */}
-              <div className="absolute right-0 top-0 bottom-0 w-24 z-10">
-                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <path 
-                    d="M0,0 Q20,15 0,30 T0,50 Q20,65 0,80 T0,100 L0,100 L100,100 L100,0 Z" 
-                    fill="white" 
-                    className="drop-shadow-lg"
-                  />
-                </svg>
-              </div>
-              
-              <div className="relative z-20 flex flex-col justify-center items-center h-full p-6 sm:p-8 lg:p-10 pr-8 sm:pr-12 lg:pr-16">
-                <div className="text-center max-w-xs sm:max-w-sm">
-                  <h2 className="text-white/90 text-base sm:text-lg lg:text-xl mb-4 sm:mb-6 font-light tracking-wide">Admin Portal</h2>
-                  
-                  {/* Enhanced Building Logo with Animation */}
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-white rounded-2xl flex items-center justify-center mb-4 sm:mb-6 mx-auto shadow-2xl transform hover:scale-105 transition-transform duration-300">
-                    <svg className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-6xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          <div className="flex flex-col lg:flex-row min-h-[600px]">
+            {/* Left Section - Login Form */}
+            <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
+              <div className="max-w-md mx-auto w-full">
+                {/* Header */}
+                <div className="mb-8">
+                  <div className="flex items-center mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center mr-4">
+                      <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h1 className="text-3xl font-bold text-gray-900">Welcome back</h1>
+                      <p className="text-gray-600 text-lg">Log in to Arthyaa</p>
+                    </div>
                   </div>
-                  
-                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6 tracking-tight">
-                    Arthyaa
-                  </h1>
-                  
-                  <p className="text-blue-100 text-sm sm:text-base leading-relaxed mb-6 sm:mb-8 max-w-sm">
-                    Secure administrative access to manage your society. Advanced controls for community management,
-                    <span className="block mt-2 font-medium">financial oversight, and member administration.</span>
-                  </p>
+                </div>
 
-                  {/* Enhanced Features List */}
-                  <div className="space-y-3 text-left">
-                    <div className="flex items-center text-blue-100 text-sm sm:text-base group">
-                      <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 group-hover:bg-white/30 transition-colors">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                        </svg>
-                      </div>
-                      <span className="font-medium">Advanced Admin Controls</span>
-                    </div>
-                    <div className="flex items-center text-blue-100 text-sm sm:text-base group">
-                      <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 group-hover:bg-white/30 transition-colors">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                        </svg>
-                      </div>
-                      <span className="font-medium">Financial Management</span>
-                    </div>
-                    <div className="flex items-center text-blue-100 text-sm sm:text-base group">
-                      <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 group-hover:bg-white/30 transition-colors">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                      </div>
-                      <span className="font-medium">Member Administration</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-8 sm:mt-10">
-                  <Link 
-                    href="/" 
-                    className="inline-flex items-center text-white/80 hover:text-white transition-all duration-300 text-sm sm:text-base group"
-                  >
-                    <span className="mr-2">Member Portal</span>
-                    <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </Link>
-                </div>
-              </div>
-            </div>
 
-            {/* Right Section - Enhanced Login Form */}
-            <div className="lg:w-1/2 p-6 sm:p-8 lg:p-10 flex flex-col justify-center flex-shrink-0 bg-gradient-to-br from-white to-gray-50">
-              <div className="max-w-xs sm:max-w-sm lg:max-w-md mx-auto w-full">
-                <div className="mb-8 text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-2xl mb-4">
-                    <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">Admin Login</h2>
-                  <p className="text-gray-600 text-sm sm:text-base leading-relaxed">Secure access to administrative dashboard</p>
-                </div>
-                
                 <form className="space-y-6" onSubmit={handleSubmit}>
                   {/* Email Field */}
                   <div>
                     <label htmlFor="email" className="block text-sm font-semibold text-gray-900 mb-3">
                       Email Address
                     </label>
-                    <div className="relative group">
-                      <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        autoComplete="email"
-                        required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="block w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100 text-gray-900 placeholder-gray-400 bg-white text-base font-medium transition-all duration-200 group-hover:border-gray-300"
-                        placeholder="Enter your email address"
-                        aria-label="Email address"
-                      />
-                      <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                        <svg className="w-6 h-6 text-gray-400 group-focus-within:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                        </svg>
-                      </div>
-                    </div>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full"
+                      placeholder="Enter your email address"
+                      aria-label="Email address"
+                    />
                   </div>
 
                   {/* Password Field */}
@@ -211,7 +129,7 @@ export default function AdminLoginPage() {
                     <label htmlFor="password" className="block text-sm font-semibold text-gray-900 mb-3">
                       Password
                     </label>
-                    <div className="relative group">
+                    <div className="relative">
                       <input
                         id="password"
                         name="password"
@@ -220,22 +138,22 @@ export default function AdminLoginPage() {
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="block w-full px-4 py-4 pr-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100 text-gray-900 placeholder-gray-400 bg-white text-base font-medium transition-all duration-200 group-hover:border-gray-300"
+                        className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full pr-10"
                         placeholder="Enter your password"
                         aria-label="Password"
                       />
                       <button
                         type="button"
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 hover:text-gray-600 transition-colors focus:outline-none"
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? 'Hide password' : 'Show password'}
                       >
                         {showPassword ? (
-                          <svg className="h-6 w-6 text-gray-400 group-focus-within:text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
                           </svg>
                         ) : (
-                          <svg className="h-6 w-6 text-gray-400 group-focus-within:text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                           </svg>
@@ -245,52 +163,40 @@ export default function AdminLoginPage() {
                   </div>
 
                   {success && (
-                    <div className="bg-green-50 border-2 border-green-200 text-green-800 px-4 py-4 rounded-xl text-sm animate-in slide-in-from-top-2 duration-300">
+                    <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0">
-                          <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <div className="ml-3">
-                          <p className="font-medium">{success}</p>
-                        </div>
+                        <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        {success}
                       </div>
                     </div>
                   )}
 
                   {error && (
-                    <div className="bg-red-50 border-2 border-red-200 text-red-800 px-4 py-4 rounded-xl text-sm animate-in slide-in-from-top-2 duration-300">
+                    <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0">
-                          <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <div className="ml-3">
-                          <p className="font-medium">{error}</p>
-                        </div>
+                        <svg className="w-5 h-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                        {error}
                       </div>
                     </div>
                   )}
 
                   {/* Enhanced Login Attempts Warning */}
                   {loginAttempts >= 3 && (
-                    <div className="bg-yellow-50 border-2 border-yellow-200 text-yellow-800 px-4 py-4 rounded-xl text-sm animate-in slide-in-from-top-2 duration-300">
+                    <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg text-sm">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0">
-                          <svg className="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.726-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <div className="ml-3">
-                          <p className="font-medium">Multiple failed attempts. Please double-check your credentials.</p>
-                        </div>
+                        <svg className="w-5 h-5 text-yellow-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.726-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        Multiple failed attempts. Please double-check your credentials.
                       </div>
                     </div>
                   )}
 
-                  {/* Enhanced Remember Me Checkbox */}
+                  {/* Remember Me and Forgot Password */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <input
@@ -299,10 +205,10 @@ export default function AdminLoginPage() {
                         type="checkbox"
                         checked={rememberMe}
                         onChange={(e) => setRememberMe(e.target.checked)}
-                        className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-2 border-gray-300 rounded-lg transition-colors"
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                       />
-                      <label htmlFor="remember-me" className="ml-3 block text-sm font-medium text-gray-700">
-                        Remember me
+                      <label htmlFor="remember-me" className="ml-2 block text-sm font-medium text-gray-700">
+                        Remember me for 30 days
                       </label>
                     </div>
                     <div className="text-sm">
@@ -315,42 +221,76 @@ export default function AdminLoginPage() {
                     </div>
                   </div>
 
-                  {/* Enhanced Buttons */}
-                  <div className="space-y-4">
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-base shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none"
-                    >
-                      {isLoading ? (
-                        <div className="flex items-center justify-center">
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Signing in...
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center">
-                          <span>Sign In Securely</span>
-                          <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                          </svg>
-                        </div>
-                      )}
-                    </button>
-                    
-                    <div className="text-center p-4 bg-gray-50 rounded-xl">
-                      <span className="text-gray-500 text-sm">Not an admin? </span>
-                      <Link
-                        href="/"
-                        className="text-blue-600 hover:text-blue-500 font-semibold text-sm transition-colors duration-200"
-                      >
-                        Member Login
-                      </Link>
+                  {/* Login Button */}
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 w-full"
+                  >
+                    {isLoading ? 'Signing in...' : 'Log in'}
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {/* Right Section - Testimonial/Marketing */}
+            <div className="lg:w-1/2 bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800 p-8 lg:p-12 flex flex-col justify-center relative overflow-hidden">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-400/30 to-indigo-600/30"></div>
+              <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-20 translate-x-20"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-16 -translate-x-16"></div>
+              <div className="absolute top-1/2 left-1/2 w-24 h-24 bg-white/5 rounded-full -translate-x-12 -translate-y-12"></div>
+              
+              <div className="relative z-10">
+                {/* Feature Tags */}
+                <div className="flex flex-wrap gap-3 mb-8">
+                  <span className="px-4 py-2 bg-white/20 text-white text-sm rounded-full border border-white/30 backdrop-blur-sm">
+                    🔐 Secure Admin Access
+                  </span>
+                  <span className="px-4 py-2 bg-white/20 text-white text-sm rounded-full border border-white/30 backdrop-blur-sm">
+                    📊 Advanced Analytics
+                  </span>
+                </div>
+
+                {/* Main Content */}
+                <div className="mb-8">
+                  <h2 className="text-3xl font-bold text-white mb-4">
+                    Manage Societies with Confidence
+                  </h2>
+                  <p className="text-blue-100 text-lg leading-relaxed mb-6">
+                    Access powerful tools to oversee multiple societies, track performance, and ensure compliance with ease.
+                  </p>
+                </div>
+
+                {/* Testimonial */}
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/20">
+                  <div className="flex items-start mb-4">
+                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">Rajesh Kumar</p>
+                      <p className="text-blue-100 text-sm">Society Administrator</p>
                     </div>
                   </div>
-                </form>
+                  <p className="text-white text-lg leading-relaxed">
+                    "I was able to streamline my society management by 40% using Arthyaa's comprehensive platform."
+                  </p>
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <div className="text-2xl font-bold text-white">500+</div>
+                    <div className="text-blue-100 text-sm">Societies Managed</div>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <div className="text-2xl font-bold text-white">99.9%</div>
+                    <div className="text-blue-100 text-sm">Uptime</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -76,6 +76,11 @@ model Society {
   city        String?
   state       String?
   pincode     String?
+  email       String?
+  mobile      String?
+  whatsapp    String?
+  blocks      Int?
+  flats       Int?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
