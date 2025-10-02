@@ -27,8 +27,11 @@ export default function AddSocietyPage() {
     state: '',
     pincode: '',
     blocks: '',
-    flats: '',
-    adminEmail: ''
+    floorsPerBlock: '',
+    flatsPerFloor: '',
+    totalFlats: '',
+    adminEmail: '',
+    logo: ''
   });
   const router = useRouter();
 
@@ -73,8 +76,11 @@ export default function AddSocietyPage() {
           email: formData.adminEmail,
           mobile: formData.mobile,
           blocks: formData.blocks,
-          flats: formData.flats,
-          adminEmail: formData.adminEmail
+          floorsPerBlock: formData.floorsPerBlock,
+          flatsPerFloor: formData.flatsPerFloor,
+          totalFlats: formData.totalFlats,
+          adminEmail: formData.adminEmail,
+          logo: formData.logo
         }),
       });
       
@@ -103,32 +109,59 @@ export default function AddSocietyPage() {
         if (value.trim().length < 3) return 'Society name must be at least 3 characters';
         return '';
       case 'mobile':
-        if (value && !/^[\+]?[1-9][\d]{0,15}$/.test(value.replace(/\s/g, ''))) return 'Please enter a valid mobile number';
+        if (!value.trim()) return 'Phone number is required';
+        if (!/^[\+]?[1-9][\d]{0,15}$/.test(value.replace(/\s/g, ''))) return 'Please enter a valid mobile number';
         return '';
       case 'pincode':
         if (value && !/^\d{6}$/.test(value)) return 'Pincode must be 6 digits';
         return '';
       case 'blocks':
-        if (value && (isNaN(Number(value)) || Number(value) < 1)) return 'Number of blocks must be a positive number';
+        if (!value.trim()) return 'Number of blocks is required';
+        if (isNaN(Number(value)) || Number(value) < 1) return 'Number of blocks must be a positive number';
         return '';
-      case 'flats':
-        if (value && (isNaN(Number(value)) || Number(value) < 1)) return 'Number of flats must be a positive number';
+      case 'floorsPerBlock':
+        if (!value.trim()) return 'Floors per block is required';
+        if (isNaN(Number(value)) || Number(value) < 1) return 'Floors per block must be a positive number';
+        return '';
+      case 'flatsPerFloor':
+        if (!value.trim()) return 'Flats per floor is required';
+        if (isNaN(Number(value)) || Number(value) < 1) return 'Flats per floor must be a positive number';
         return '';
       case 'adminEmail':
         if (!value.trim()) return 'Admin email is required';
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Please enter a valid email address';
+        return '';
+      case 'address':
+        if (!value.trim()) return 'Address is required';
+        if (value.trim().length < 10) return 'Address must be at least 10 characters';
         return '';
       default:
         return '';
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [name]: value
+      };
+      
+      // Calculate total flats automatically
+      if (name === 'blocks' || name === 'floorsPerBlock' || name === 'flatsPerFloor') {
+        const blocks = name === 'blocks' ? Number(value) : Number(prev.blocks);
+        const floorsPerBlock = name === 'floorsPerBlock' ? Number(value) : Number(prev.floorsPerBlock);
+        const flatsPerFloor = name === 'flatsPerFloor' ? Number(value) : Number(prev.flatsPerFloor);
+        
+        if (blocks > 0 && floorsPerBlock > 0 && flatsPerFloor > 0) {
+          newData.totalFlats = (blocks * floorsPerBlock * flatsPerFloor).toString();
+        }
+      }
+      
+      return newData;
+    });
     
     // Clear error when user starts typing
     if (formErrors[name]) {
@@ -139,7 +172,7 @@ export default function AddSocietyPage() {
     }
   };
 
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     const error = validateField(name, value);
     setFormErrors(prev => ({
@@ -151,14 +184,21 @@ export default function AddSocietyPage() {
   const validateForm = () => {
     const errors: {[key: string]: string} = {};
     
-    // Required fields
-    if (!formData.name.trim()) errors.name = 'Society name is required';
-    if (!formData.adminEmail.trim()) errors.adminEmail = 'Admin email is required';
+    // Validate all required fields
+    const requiredFields = ['name', 'adminEmail', 'mobile', 'address', 'blocks', 'floorsPerBlock', 'flatsPerFloor'];
+    requiredFields.forEach(field => {
+      const error = validateField(field, formData[field as keyof typeof formData]);
+      if (error) errors[field] = error;
+    });
     
-    // Validate all fields
-    Object.keys(formData).forEach(key => {
-      const error = validateField(key, formData[key as keyof typeof formData]);
-      if (error) errors[key] = error;
+    // Validate optional fields if they have values
+    const optionalFields = ['pincode', 'city', 'state'];
+    optionalFields.forEach(field => {
+      const value = formData[field as keyof typeof formData];
+      if (value && value.trim()) {
+        const error = validateField(field, value);
+        if (error) errors[field] = error;
+      }
     });
     
     setFormErrors(errors);
@@ -166,289 +206,298 @@ export default function AddSocietyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-6">
-            {/* Left Side - Logo and Title */}
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg">
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Add Society</h1>
-              <p className="text-sm text-gray-600">Create a new society management system</p>
-            </div>
-          </div>
-          
-          {/* Right Side - User Profile and Logout */}
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-3 bg-white/60 backdrop-blur-sm rounded-xl px-4 py-3 border border-gray-200/50 shadow-sm">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-md">
-                <span className="text-white font-semibold text-lg">
-                  {user?.firstName?.[0]}{user?.lastName?.[0]}
-                </span>
-              </div>
-              <div className="text-sm">
-                <div className="font-semibold text-gray-900">{user?.firstName} {user?.lastName}</div>
-                <div className="text-gray-600 flex items-center">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                  <span className="font-medium">System Administrator</span>
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {user?.email}
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-red-300 bg-red-600 text-white hover:bg-red-700 h-10 px-4 py-2"
-            >
-              <svg className="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Logout
-            </button>
-          </div>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-gray-50">
       {/* Main Content */}
-      <main className="w-full py-4 px-4">
+      <main className="w-full">
         <div className="w-full">
           {/* Form Header */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">Create New Society</h2>
-            <p className="text-gray-600">Fill in the details below to create a new society</p>
+          <div className="bg-white border-b border-gray-200 px-8 py-6">
+            <h1 className="text-2xl font-bold text-gray-900">Add Society</h1>
+            <p className="text-gray-600 mt-1">Create a new society profile for your directory</p>
           </div>
-
+          
           {/* Form Content */}
-          <div className="bg-white border border-gray-200 rounded-lg">
-            <div className="p-6">
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+            <div className="p-8">
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Row 1: Society Name and Mobile */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                      Society Name *
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      required
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      onBlur={handleBlur}
-                      className={`flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full ${
-                        formErrors.name 
-                          ? 'border-red-300' 
-                          : ''
-                      }`}
-                      placeholder="Enter society name"
-                    />
-                    {formErrors.name && (
-                      <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label htmlFor="mobile" className="block text-sm font-medium text-gray-700 mb-1">
-                      Mobile Number
-                    </label>
-                    <input
-                      type="tel"
-                      id="mobile"
-                      name="mobile"
-                      value={formData.mobile}
-                      onChange={handleInputChange}
-                      onBlur={handleBlur}
-                      className={`flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full ${
-                        formErrors.mobile 
-                          ? 'border-red-300' 
-                          : ''
-                      }`}
-                      placeholder="+91 9876543210"
-                    />
-                    {formErrors.mobile && (
-                      <p className="mt-1 text-sm text-red-600">{formErrors.mobile}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Row 2: Address (full width) */}
+                {/* Society Details Section */}
                 <div>
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-                    Address
-                  </label>
-                  <textarea
-                    id="address"
-                    name="address"
-                    rows={3}
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    onBlur={handleBlur}
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                    placeholder="Enter complete society address"
-                  />
-                </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Society Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Society Name */}
+                    <div>
+                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                        Society Name*
+                      </label>
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        required
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          formErrors.name ? 'border-red-300' : ''
+                        }`}
+                        placeholder="Enter society name"
+                      />
+                      {formErrors.name && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
+                      )}
+                    </div>
 
-                {/* Row 3: Location Fields */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-                      City
-                    </label>
-                    <input
-                      type="text"
-                      id="city"
-                      name="city"
-                      value={formData.city}
-                      onChange={handleInputChange}
-                      onBlur={handleBlur}
-                      className={`flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full ${
-                        formErrors.city 
-                          ? 'border-red-300' 
-                          : ''
-                      }`}
-                      placeholder="Enter city name"
-                    />
-                    {formErrors.city && (
-                      <p className="mt-1 text-sm text-red-600">{formErrors.city}</p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
-                      State
-                    </label>
-                    <input
-                      type="text"
-                      id="state"
-                      name="state"
-                      value={formData.state}
-                      onChange={handleInputChange}
-                      onBlur={handleBlur}
-                      className={`flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full ${
-                        formErrors.state 
-                          ? 'border-red-300' 
-                          : 'border-gray-300'
-                      }`}
-                      placeholder="Enter state name"
-                    />
-                    {formErrors.state && (
-                      <p className="mt-1 text-sm text-red-600">{formErrors.state}</p>
-                    )}
-                  </div>
+                    {/* Admin Email */}
+                    <div>
+                      <label htmlFor="adminEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                        Admin Email Address*
+                      </label>
+                      <input
+                        type="email"
+                        id="adminEmail"
+                        name="adminEmail"
+                        required
+                        value={formData.adminEmail}
+                        onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          formErrors.adminEmail ? 'border-red-300' : ''
+                        }`}
+                        placeholder="Enter email address"
+                      />
+                      {formErrors.adminEmail && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.adminEmail}</p>
+                      )}
+                    </div>
 
-                  <div>
-                    <label htmlFor="pincode" className="block text-sm font-medium text-gray-700 mb-1">
-                      Pincode
-                    </label>
-                    <input
-                      type="text"
-                      id="pincode"
-                      name="pincode"
-                      value={formData.pincode}
-                      onChange={handleInputChange}
-                      onBlur={handleBlur}
-                      className={`flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full ${
-                        formErrors.pincode 
-                          ? 'border-red-300' 
-                          : 'border-gray-300'
-                      }`}
-                      placeholder="Enter 6-digit pincode"
-                    />
-                    {formErrors.pincode && (
-                      <p className="mt-1 text-sm text-red-600">{formErrors.pincode}</p>
-                    )}
+                    {/* Mobile Number */}
+                    <div>
+                      <label htmlFor="mobile" className="block text-sm font-medium text-gray-700 mb-2">
+                        Phone Number*
+                      </label>
+                      <div className="flex">
+                        <div className="flex items-center px-3 py-2 border border-gray-300 border-r-0 rounded-l-md bg-gray-50">
+                          <span className="text-sm text-gray-500">+91</span>
+                        </div>
+                        <input
+                          type="tel"
+                          id="mobile"
+                          name="mobile"
+                          value={formData.mobile}
+                          onChange={handleInputChange}
+                          onBlur={handleBlur}
+                          className={`flex-1 px-3 py-2 border border-gray-300 rounded-r-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                            formErrors.mobile ? 'border-red-300' : ''
+                          }`}
+                          placeholder="Enter phone number"
+                        />
+                      </div>
+                      {formErrors.mobile && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.mobile}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                {/* Row 4: Structure Fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="blocks" className="block text-sm font-medium text-gray-700 mb-1">
-                      Number of Blocks
-                    </label>
-                    <input
-                      type="number"
-                      id="blocks"
-                      name="blocks"
-                      value={formData.blocks}
-                      onChange={handleInputChange}
-                      onBlur={handleBlur}
-                      className={`flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full ${
-                        formErrors.blocks 
-                          ? 'border-red-300' 
-                          : 'border-gray-300'
-                      }`}
-                      placeholder="e.g., 5"
-                    />
-                    {formErrors.blocks && (
-                      <p className="mt-1 text-sm text-red-600">{formErrors.blocks}</p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="flats" className="block text-sm font-medium text-gray-700 mb-1">
-                      Number of Flats
-                    </label>
-                    <input
-                      type="number"
-                      id="flats"
-                      name="flats"
-                      value={formData.flats}
-                      onChange={handleInputChange}
-                      onBlur={handleBlur}
-                      className={`flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full ${
-                        formErrors.flats 
-                          ? 'border-red-300' 
-                          : 'border-gray-300'
-                      }`}
-                      placeholder="e.g., 200"
-                    />
-                    {formErrors.flats && (
-                      <p className="mt-1 text-sm text-red-600">{formErrors.flats}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Row 5: Admin Email (full width) */}
+                {/* Address Details Section */}
                 <div>
-                  <label htmlFor="adminEmail" className="block text-sm font-medium text-gray-700 mb-1">
-                    Society Admin Email *
-                  </label>
-                  <input
-                    type="email"
-                    id="adminEmail"
-                    name="adminEmail"
-                    required
-                    value={formData.adminEmail}
-                    onChange={handleInputChange}
-                    onBlur={handleBlur}
-                    className={`flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full ${
-                      formErrors.adminEmail 
-                        ? 'border-red-300' 
-                        : 'border-gray-300'
-                    }`}
-                    placeholder="admin@example.com"
-                  />
-                  {formErrors.adminEmail && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.adminEmail}</p>
-                  )}
-                  <p className="mt-2 text-sm text-gray-500">
-                    This email will be used for both society contact and admin account setup.
-                  </p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Address Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Address */}
+                    <div>
+                      <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
+                        Address*
+                      </label>
+                      <textarea
+                        id="address"
+                        name="address"
+                        rows={2}
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          formErrors.address ? 'border-red-300' : ''
+                        }`}
+                        placeholder="Enter society address"
+                      />
+                      {formErrors.address && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.address}</p>
+                      )}
+                    </div>
+                    
+                    {/* Society Logo */}
+                    <div>
+                      <label htmlFor="logo" className="block text-sm font-medium text-gray-700 mb-2">
+                        Society Logo
+                      </label>
+                      <input
+                        type="file"
+                        id="logo"
+                        name="logo"
+                        accept="image/*"
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Structure Details Section */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Structure Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {/* Number of Blocks */}
+                    <div>
+                      <label htmlFor="blocks" className="block text-sm font-medium text-gray-700 mb-2">
+                        Number of Blocks*
+                      </label>
+                      <input
+                        type="number"
+                        id="blocks"
+                        name="blocks"
+                        required
+                        value={formData.blocks}
+                        onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          formErrors.blocks ? 'border-red-300' : ''
+                        }`}
+                        placeholder="e.g., 3"
+                      />
+                      {formErrors.blocks && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.blocks}</p>
+                      )}
+                    </div>
+
+                    {/* Floors per Block */}
+                    <div>
+                      <label htmlFor="floorsPerBlock" className="block text-sm font-medium text-gray-700 mb-2">
+                        Floors per Block*
+                      </label>
+                      <input
+                        type="number"
+                        id="floorsPerBlock"
+                        name="floorsPerBlock"
+                        required
+                        value={formData.floorsPerBlock}
+                        onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          formErrors.floorsPerBlock ? 'border-red-300' : ''
+                        }`}
+                        placeholder="e.g., 10"
+                      />
+                      {formErrors.floorsPerBlock && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.floorsPerBlock}</p>
+                      )}
+                    </div>
+
+                    {/* Flats per Floor */}
+                    <div>
+                      <label htmlFor="flatsPerFloor" className="block text-sm font-medium text-gray-700 mb-2">
+                        Flats per Floor*
+                      </label>
+                      <input
+                        type="number"
+                        id="flatsPerFloor"
+                        name="flatsPerFloor"
+                        required
+                        value={formData.flatsPerFloor}
+                        onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          formErrors.flatsPerFloor ? 'border-red-300' : ''
+                        }`}
+                        placeholder="e.g., 4"
+                      />
+                      {formErrors.flatsPerFloor && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.flatsPerFloor}</p>
+                      )}
+                    </div>
+
+                    {/* Total Flats (Auto-calculated) */}
+                    <div>
+                      <label htmlFor="totalFlats" className="block text-sm font-medium text-gray-700 mb-2">
+                        Total Flats
+                      </label>
+                      <input
+                        type="number"
+                        id="totalFlats"
+                        name="totalFlats"
+                        value={formData.totalFlats}
+                        readOnly
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-600"
+                        placeholder="Auto-calculated"
+                      />
+                      <p className="mt-1 text-xs text-gray-500">
+                        Calculated: Blocks × Floors × Flats per Floor
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Location Details */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Location Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
+                        City
+                      </label>
+                      <input
+                        type="text"
+                        id="city"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter city name"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
+                        State
+                      </label>
+                      <input
+                        type="text"
+                        id="state"
+                        name="state"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter state name"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="pincode" className="block text-sm font-medium text-gray-700 mb-2">
+                        Pincode
+                      </label>
+                      <input
+                        type="text"
+                        id="pincode"
+                        name="pincode"
+                        value={formData.pincode}
+                        onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          formErrors.pincode ? 'border-red-300' : ''
+                        }`}
+                        placeholder="Enter 6-digit pincode"
+                      />
+                      {formErrors.pincode && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.pincode}</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Success Message */}
                 {success && (
-                  <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+                  <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
                     <div className="flex items-center">
                       <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -460,7 +509,7 @@ export default function AddSocietyPage() {
 
                 {/* Error Message */}
                 {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
                     <div className="flex items-center">
                       <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
@@ -477,6 +526,9 @@ export default function AddSocietyPage() {
                     onClick={() => router.push('/admin/dashboard')}
                     className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 h-10 px-4 py-2"
                   >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
                     Cancel
                   </button>
                   
@@ -485,7 +537,7 @@ export default function AddSocietyPage() {
                     disabled={isLoading}
                     className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
                   >
-                    {isLoading ? 'Creating Society...' : 'Create Society'}
+                    {isLoading ? 'Creating Society...' : 'Save Society'}
                   </button>
                 </div>
               </form>
