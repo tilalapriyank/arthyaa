@@ -97,9 +97,15 @@ export default function SocietiesPage() {
       );
     }
 
-    // State filter
-    if (filterState !== 'all') {
-      filtered = filtered.filter(society => society.state === filterState);
+    // Category filter
+    if (filterState === 'active') {
+      filtered = filtered.filter(society => society._count?.users && society._count.users > 0);
+    } else if (filterState === 'inactive') {
+      filtered = filtered.filter(society => !society._count?.users || society._count.users === 0);
+    } else if (filterState === 'recent') {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      filtered = filtered.filter(society => new Date(society.createdAt) > thirtyDaysAgo);
     }
 
     // Sort
@@ -158,94 +164,68 @@ export default function SocietiesPage() {
     );
   }
 
+  // Calculate counts for different categories
+  const allCount = societies.length;
+  const activeCount = societies.filter(s => s._count?.users && s._count.users > 0).length;
+  const inactiveCount = societies.filter(s => !s._count?.users || s._count.users === 0).length;
+  const recentCount = societies.filter(s => {
+    const createdDate = new Date(s.createdAt);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    return createdDate > thirtyDaysAgo;
+  }).length;
+
   return (
     <div className="w-full">
-      {/* Page Title */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Society Management</h1>
-        <p className="text-gray-600">Manage all societies in the system</p>
-      </div>
-
-      {/* Search and Filter Controls */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Search */}
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <input
-              type="text"
-              placeholder="Search societies..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex h-10 rounded-md border border-input bg-background pl-10 pr-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full"
-            />
-          </div>
-
-          {/* State Filter */}
-          <div>
-            <select
-              value={filterState}
-              onChange={(e) => setFilterState(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-            >
-              <option value="all">All States</option>
-              {Array.from(new Set(societies.map(s => s.state).filter(Boolean))).map(state => (
-                <option key={state} value={state}>{state}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Sort */}
-          <div>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-            >
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-              <option value="name">Name A-Z</option>
-              <option value="members">Most Members</option>
-            </select>
-          </div>
+      {/* Header Section */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Society Management</h1>
+          <p className="text-gray-600 mt-1">Manage your societies and track their performance</p>
         </div>
-
-        {/* Results Summary */}
-        <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
-          <span>
-            Showing {filteredSocieties.length} of {societies.length} societies
-            {searchTerm && ` matching "${searchTerm}"`}
-          </span>
-          {(searchTerm || filterState !== 'all') && (
-            <button
-              onClick={() => {
-                setSearchTerm('');
-                setFilterState('all');
-                setSortBy('newest');
-              }}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-blue-600 hover:text-blue-700 h-10 px-4 py-2"
-            >
-              Clear filters
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Add New Society Button */}
-      <div className="flex justify-end mb-6">
         <a
           href="/admin/societies/add"
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
+          className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-violet-600 text-white hover:bg-violet-700 h-10 px-4 py-2"
         >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
-          Add New Society
+          Add Society
         </a>
+      </div>
+
+      {/* Search and Layout Controls */}
+      <div className="flex items-center gap-4 mb-6">
+        {/* Search Bar */}
+        <div className="flex-1">
+          <div className="relative">
+            <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.3-4.3"></path>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search here"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+
+        {/* Layout Toggle */}
+        <div className="flex border border-gray-200 rounded-lg">
+          <button className="p-2 bg-violet-50 border border-violet-200 rounded-l-lg">
+            <svg className="h-4 w-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+          </button>
+          <button className="p-2 text-gray-400 hover:bg-gray-50 rounded-r-lg">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Societies List */}
