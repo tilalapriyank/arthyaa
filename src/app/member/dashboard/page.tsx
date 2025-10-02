@@ -60,33 +60,17 @@ export default function MemberDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                {user?.isSecretary ? 'Secretary Dashboard' : 'Member Dashboard'}
-              </h1>
-              <p className="text-gray-600">
-                Welcome, {user?.firstName} {user?.lastName}
-                {user?.isSecretary && <span className="ml-2 text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Secretary</span>}
-              </p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-red-300 bg-red-600 text-white hover:bg-red-700 h-10 px-4 py-2"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
+    <div className="w-full">
+      {/* Page Title */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">
+          {user?.isSecretary ? 'Secretary Dashboard' : 'Member Dashboard'}
+        </h1>
+        <p className="text-gray-600">
+          Welcome, {user?.firstName} {user?.lastName}
+          {user?.isSecretary && <span className="ml-2 text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Secretary</span>}
+        </p>
+      </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Quick Actions */}
             <div className="bg-white overflow-hidden shadow rounded-lg">
@@ -189,8 +173,6 @@ export default function MemberDashboard() {
               </div>
             </div>
           </div>
-        </div>
-      </main>
     </div>
   );
 }
