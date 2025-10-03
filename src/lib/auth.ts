@@ -65,7 +65,7 @@ export function verifyToken(token: string): AuthUser | null {
       role: decoded.role,
       sessionId: decoded.sessionId
     };
-  } catch (error) {
+  } catch {
     return null;
   }
 }

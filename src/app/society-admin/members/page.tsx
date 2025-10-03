@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 
@@ -46,21 +46,7 @@ export default function MembersPage() {
   });
   const router = useRouter();
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  useEffect(() => {
-    if (user) {
-      fetchMembers();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    filterMembers();
-  }, [members, searchTerm, filterStatus]);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me');
       const data = await response.json();
@@ -70,12 +56,22 @@ export default function MembersPage() {
       } else {
         router.push('/admin/login');
       }
-    } catch (error) {
+    } catch {
       router.push('/admin/login');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  useEffect(() => {
+    if (user) {
+      fetchMembers();
+    }
+  }, [user]);
 
   const fetchMembers = async () => {
     try {
@@ -136,7 +132,7 @@ export default function MembersPage() {
     }
   };
 
-  const filterMembers = () => {
+  const filterMembers = useCallback(() => {
     let filtered = [...members];
 
     // Status filter
@@ -158,7 +154,11 @@ export default function MembersPage() {
     }
 
     setFilteredMembers(filtered);
-  };
+  }, [members, searchTerm, filterStatus]);
+
+  useEffect(() => {
+    filterMembers();
+  }, [filterMembers]);
 
   const handleDeleteMember = (member: Member) => {
     setDeleteDialog({

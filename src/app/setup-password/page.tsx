@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function SetupPasswordPage() {
+function SetupPasswordForm() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -50,7 +50,7 @@ export default function SetupPasswordPage() {
         setError(data.message || 'Invalid or expired setup token');
         setIsTokenValid(false);
       }
-    } catch (error) {
+    } catch {
       setError('Failed to verify setup token');
       setIsTokenValid(false);
     } finally {
@@ -96,7 +96,7 @@ export default function SetupPasswordPage() {
       } else {
         setError(data.message || 'Failed to set password');
       }
-    } catch (error) {
+    } catch {
       setError('Failed to set password. Please try again.');
     } finally {
       setIsLoading(false);
@@ -250,5 +250,20 @@ export default function SetupPasswordPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function SetupPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <SetupPasswordForm />
+    </Suspense>
   );
 }

@@ -51,7 +51,7 @@ export default function SetupPage() {
       } else {
         setError(data.message || 'Setup failed');
       }
-    } catch (error) {
+    } catch {
       setError('Network error. Please try again.');
     } finally {
       setIsLoading(false);

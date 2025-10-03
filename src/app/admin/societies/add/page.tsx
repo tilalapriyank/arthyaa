@@ -2,23 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-
-interface User {
-  id: string;
-  email?: string;
-  phone?: string;
-  role: string;
-  firstName?: string;
-  lastName?: string;
-  isSecretary?: boolean;
-}
+import Image from 'next/image';
 
 export default function AddSocietyPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
-  const [user, setUser] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -36,17 +26,6 @@ export default function AddSocietyPage() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleLogout = async () => {
-    try {
-      localStorage.removeItem('auth-token');
-      setUser(null);
-      router.push('/admin/login');
-    } catch (error) {
-      localStorage.removeItem('auth-token');
-      setUser(null);
-      router.push('/admin/login');
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -324,9 +303,11 @@ export default function AddSocietyPage() {
                           <div className="mt-2">
                             <p className="text-sm text-gray-600 mb-2">Preview:</p>
                             <div className="border border-gray-200 rounded-md p-2 bg-gray-50">
-                              <img
+                              <Image
                                 src={logoPreview}
                                 alt="Logo preview"
+                                width={200}
+                                height={80}
                                 className="max-w-full h-20 object-contain mx-auto"
                               />
                             </div>

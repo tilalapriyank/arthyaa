@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface User {
@@ -18,11 +18,7 @@ export default function MemberDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me');
       const data = await response.json();
@@ -32,21 +28,17 @@ export default function MemberDashboard() {
       } else {
         router.push('/');
       }
-    } catch (error) {
+    } catch {
       router.push('/login');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
 
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
 
   if (isLoading) {
     return (

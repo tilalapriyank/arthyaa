@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { verifyToken } from '@/lib/auth';
 import { sendWelcomeEmail } from '@/lib/email';
-import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
 const prisma = new PrismaClient();
@@ -69,10 +68,7 @@ export async function POST(request: NextRequest) {
       state, 
       pincode, 
       mobile, 
-      whatsapp, 
       blocks, 
-      floorsPerBlock,
-      flatsPerFloor,
       totalFlats,
       adminEmail 
     } = body;
@@ -121,7 +117,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Create society admin user with setup token
-    const societyAdmin = await prisma.user.create({
+    await prisma.user.create({
       data: {
         email: adminEmail.trim(),
         phone: mobile?.trim() || null,

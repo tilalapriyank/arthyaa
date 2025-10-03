@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 
@@ -46,21 +46,7 @@ export default function SocietiesPage() {
   });
   const router = useRouter();
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  useEffect(() => {
-    if (user) {
-      fetchSocieties();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    filterSocieties();
-  }, [societies, searchTerm]);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me');
       const data = await response.json();
@@ -70,12 +56,22 @@ export default function SocietiesPage() {
       } else {
         router.push('/admin/login');
       }
-    } catch (error) {
+    } catch {
       router.push('/admin/login');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  useEffect(() => {
+    if (user) {
+      fetchSocieties();
+    }
+  }, [user]);
 
   const fetchSocieties = async () => {
     try {
@@ -91,7 +87,7 @@ export default function SocietiesPage() {
     }
   };
 
-  const filterSocieties = () => {
+  const filterSocieties = useCallback(() => {
     let filtered = [...societies];
 
     // Search filter only
@@ -105,7 +101,11 @@ export default function SocietiesPage() {
     }
 
     setFilteredSocieties(filtered);
-  };
+  }, [societies, searchTerm]);
+
+  useEffect(() => {
+    filterSocieties();
+  }, [filterSocieties]);
 
   const handleDeleteSociety = (society: Society) => {
     setDeleteDialog({

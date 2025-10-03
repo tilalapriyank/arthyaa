@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
 interface User {
@@ -23,16 +23,7 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    // Skip auth check for login page
-    if (pathname === '/admin/login') {
-      setIsLoading(false);
-      return;
-    }
-    checkAuth();
-  }, [pathname]);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me');
       const data = await response.json();
@@ -42,12 +33,21 @@ export default function AdminLayout({
       } else {
         router.push('/admin/login');
       }
-    } catch (error) {
+    } catch {
       router.push('/admin/login');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    // Skip auth check for login page
+    if (pathname === '/admin/login') {
+      setIsLoading(false);
+      return;
+    }
+    checkAuth();
+  }, [pathname, checkAuth]);
 
   const handleLogout = async () => {
     try {

@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 // DELETE /api/admin/societies/[id] - Delete society
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verify admin authentication using cookies
@@ -75,7 +75,7 @@ export async function DELETE(
 // PUT /api/admin/societies/[id] - Update society
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verify admin authentication using cookies

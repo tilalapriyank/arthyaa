@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { sendOTP, verifyOTP, initializeRecaptcha, clearRecaptcha } from '@/lib/firebase';
 import type { ConfirmationResult } from 'firebase/auth';
@@ -242,7 +241,7 @@ export default function MemberLoginPage() {
                         />
                       </div>
                       <p className="text-sm text-gray-500 mt-2">
-                        We'll send you a verification code via SMS
+                        We&apos;ll send you a verification code via SMS
                       </p>
                     </div>
 
@@ -355,7 +354,7 @@ export default function MemberLoginPage() {
                           <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          Didn't receive OTP? Check your SMS or try resending
+                          Didn&apos;t receive OTP? Check your SMS or try resending
                         </p>
                       )}
                     </div>
@@ -407,7 +406,7 @@ export default function MemberLoginPage() {
                     Connect with Your Society
                   </h2>
                   <p className="text-blue-100 text-lg leading-relaxed mb-6">
-                    Access your society's services, stay updated with announcements, and manage your membership with ease.
+                    Access your society&apos;s services, stay updated with announcements, and manage your membership with ease.
                   </p>
                 </div>
 
@@ -425,7 +424,7 @@ export default function MemberLoginPage() {
                     </div>
                   </div>
                   <p className="text-white text-lg leading-relaxed">
-                    "I was able to streamline my society management by 40% using Arthyaa's comprehensive platform."
+                    &ldquo;I was able to streamline my society management by 40% using Arthyaa&apos;s comprehensive platform.&rdquo;
                   </p>
                 </div>
 

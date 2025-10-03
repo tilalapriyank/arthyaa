@@ -19,7 +19,7 @@ interface EmailTemplate {
 }
 
 // Create email transporter
-function createTransporter(): nodemailer.Transporter {
+export function createTransporter(): nodemailer.Transporter {
   const config: EmailConfig = {
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT || '587'),

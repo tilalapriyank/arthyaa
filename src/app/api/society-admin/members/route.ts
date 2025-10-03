@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { sendWelcomeEmail } from '@/lib/email';
 
 const prisma = new PrismaClient();
 
@@ -19,8 +18,6 @@ export async function POST(request: NextRequest) {
     const memberType = formData.get('memberType') as 'OWNER' | 'TENANT';
     const isSecretary = formData.get('isSecretary') === 'true';
     const isActive = formData.get('isActive') === 'true';
-    const duesAmount = formData.get('duesAmount') as string;
-    const notes = formData.get('notes') as string;
     
     // Get society admin's society ID from session
     const authHeader = request.headers.get('authorization');
@@ -98,7 +95,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Send welcome email with OTP login instructions
-    const emailSent = await sendMemberWelcomeEmail(email, firstName, lastName, flatNumber, blockNumber);
+    await sendMemberWelcomeEmail(email, firstName, lastName, flatNumber, blockNumber);
 
     return NextResponse.json({
       success: true,

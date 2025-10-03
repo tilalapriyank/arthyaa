@@ -142,7 +142,7 @@ export async function resetRateLimit(identifier: string, action: keyof typeof RA
         }
       }
     });
-  } catch (error) {
+  } catch {
     // Ignore errors if record doesn't exist
     console.log(`Rate limit reset for ${identifier}:${action} (may not exist)`);
   }

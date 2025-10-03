@@ -276,7 +276,7 @@ export default function AdminLoginPage() {
                     </div>
                   </div>
                   <p className="text-white text-lg leading-relaxed">
-                    "I was able to streamline my society management by 40% using Arthyaa's comprehensive platform."
+                    &ldquo;I was able to streamline my society management by 40% using Arthyaa&apos;s comprehensive platform.&rdquo;
                   </p>
                 </div>
 

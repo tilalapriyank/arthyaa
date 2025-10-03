@@ -1,20 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
-interface User {
-  id: string;
-  email?: string;
-  phone?: string;
-  role: string;
-  firstName?: string;
-  lastName?: string;
-  isSecretary?: boolean;
-}
 
 export default function AddMemberPage() {
-  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -36,26 +26,26 @@ export default function AddMemberPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const router = useRouter();
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me');
       const data = await response.json();
 
       if (data.success && data.user.role === 'SOCIETY_ADMIN') {
-        setUser(data.user);
+        // User is authenticated
       } else {
         router.push('/admin/login');
       }
-    } catch (error) {
+    } catch {
       router.push('/admin/login');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};

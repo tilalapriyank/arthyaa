@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 
@@ -43,17 +43,7 @@ export default function AdminDashboard() {
   });
   const router = useRouter();
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  useEffect(() => {
-    if (user) {
-      fetchSocieties();
-    }
-  }, [user]);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me');
       const data = await response.json();
@@ -63,12 +53,22 @@ export default function AdminDashboard() {
       } else {
         router.push('/admin/login');
       }
-    } catch (error) {
+    } catch {
       router.push('/login');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  useEffect(() => {
+    if (user) {
+      fetchSocieties();
+    }
+  }, [user]);
 
   const fetchSocieties = async () => {
     try {
@@ -126,18 +126,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      localStorage.removeItem('auth-token');
-      setUser(null);
-      router.push('/admin/login');
-    } catch (error) {
-      console.error('Logout error:', error);
-      localStorage.removeItem('auth-token');
-      setUser(null);
-      router.push('/admin/login');
-    }
-  };
 
   if (isLoading) {
     return (
