@@ -222,7 +222,7 @@ export default function AddSocietyPage() {
       <main className="w-full">
         <div className="w-full">
           {/* Form Header */}
-          <div className="bg-white border-b border-gray-200 px-8 py-6">
+          <div className="bg-white border-b border-gray-200 px-8 py-6 pt-0 ps-0">
             <h1 className="text-2xl font-bold text-gray-900">Add Society</h1>
             <p className="text-gray-600 mt-1">Create a new society profile for your directory</p>
           </div>
