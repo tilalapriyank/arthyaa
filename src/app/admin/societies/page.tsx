@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 
 interface User {
   id: string;
@@ -35,6 +36,15 @@ export default function SocietiesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterState, setFilterState] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    society: Society | null;
+    isLoading: boolean;
+  }>({
+    isOpen: false,
+    society: null,
+    isLoading: false
+  });
   const router = useRouter();
 
   useEffect(() => {
@@ -125,29 +135,44 @@ export default function SocietiesPage() {
     setFilteredSocieties(filtered);
   };
 
-  const handleDeleteSociety = async (societyId: string) => {
-    if (!confirm('Are you sure you want to delete this society? This action cannot be undone.')) {
-      return;
-    }
+  const handleDeleteSociety = (society: Society) => {
+    setDeleteDialog({
+      isOpen: true,
+      society,
+      isLoading: false
+    });
+  };
+
+  const confirmDeleteSociety = async () => {
+    if (!deleteDialog.society) return;
+
+    setDeleteDialog(prev => ({ ...prev, isLoading: true }));
     
     try {
-      const response = await fetch(`/api/admin/societies/${societyId}`, {
+      const response = await fetch(`/api/admin/societies/${deleteDialog.society.id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth-token') || ''}`
-        }
+        credentials: 'include'
       });
       
       const data = await response.json();
       
       if (data.success) {
-        setSocieties(societies.filter(society => society.id !== societyId));
+        setSocieties(societies.filter(society => society.id !== deleteDialog.society!.id));
+        setDeleteDialog({ isOpen: false, society: null, isLoading: false });
       } else {
         alert(data.message || 'Failed to delete society');
+        setDeleteDialog(prev => ({ ...prev, isLoading: false }));
       }
     } catch (error) {
       console.error('Error deleting society:', error);
       alert('Failed to delete society');
+      setDeleteDialog(prev => ({ ...prev, isLoading: false }));
+    }
+  };
+
+  const closeDeleteDialog = () => {
+    if (!deleteDialog.isLoading) {
+      setDeleteDialog({ isOpen: false, society: null, isLoading: false });
     }
   };
 
@@ -291,7 +316,7 @@ export default function SocietiesPage() {
                       </div>
                     </div>
                     <button
-                      onClick={() => handleDeleteSociety(society.id)}
+                      onClick={() => handleDeleteSociety(society)}
                       className="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-lg"
                       title="Delete society"
                     >
@@ -322,6 +347,17 @@ export default function SocietiesPage() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={closeDeleteDialog}
+        onConfirm={confirmDeleteSociety}
+        title="Delete Society"
+        message="Are you sure you want to delete this society? This action cannot be undone."
+        itemName={deleteDialog.society?.name || ''}
+        isLoading={deleteDialog.isLoading}
+      />
     </div>
   );
 }

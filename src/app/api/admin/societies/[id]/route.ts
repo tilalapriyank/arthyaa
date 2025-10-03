@@ -10,10 +10,10 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Verify admin authentication
-    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    // Verify admin authentication using cookies
+    const token = request.cookies.get('auth-token')?.value;
     if (!token) {
-      return NextResponse.json({ success: false, message: 'No token provided' }, { status: 401 });
+      return NextResponse.json({ success: false, message: 'No authentication token' }, { status: 401 });
     }
 
     const decoded = verifyToken(token);
@@ -21,7 +21,7 @@ export async function DELETE(
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 403 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Check if society exists
     const society = await prisma.society.findUnique({
@@ -42,12 +42,16 @@ export async function DELETE(
       );
     }
 
-    // Check if society has users
-    if (society._count.users > 0) {
-      return NextResponse.json(
-        { success: false, message: 'Cannot delete society with existing members. Please remove all members first.' },
-        { status: 400 }
-      );
+    // Delete all users (members) belonging to this society first
+    await prisma.user.deleteMany({
+      where: { societyId: id }
+    });
+
+    // Also delete any user with the same email as the society (if society has email)
+    if (society.email) {
+      await prisma.user.deleteMany({
+        where: { email: society.email }
+      });
     }
 
     // Delete the society
@@ -74,10 +78,10 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Verify admin authentication
-    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    // Verify admin authentication using cookies
+    const token = request.cookies.get('auth-token')?.value;
     if (!token) {
-      return NextResponse.json({ success: false, message: 'No token provided' }, { status: 401 });
+      return NextResponse.json({ success: false, message: 'No authentication token' }, { status: 401 });
     }
 
     const decoded = verifyToken(token);
@@ -85,7 +89,7 @@ export async function PUT(
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 403 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { name, address, city, state, pincode } = body;
 
