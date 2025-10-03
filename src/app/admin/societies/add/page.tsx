@@ -33,6 +33,7 @@ export default function AddSocietyPage() {
     adminEmail: '',
     logo: ''
   });
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -141,7 +142,17 @@ export default function AddSocietyPage() {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
+    const { name, value, files } = e.target as HTMLInputElement;
+    
+    // Handle file upload for logo
+    if (name === 'logo' && files && files[0]) {
+      const file = files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
     
     setFormData(prev => {
       const newData = {
@@ -296,13 +307,42 @@ export default function AddSocietyPage() {
                         <p className="mt-1 text-sm text-red-600">{formErrors.mobile}</p>
                       )}
                     </div>
+
+                    {/* Society Logo */}
+                    <div>
+                      <label htmlFor="logo" className="block text-sm font-medium text-gray-700 mb-2">
+                        Society Logo
+                      </label>
+                      <div className="space-y-3">
+                        <input
+                          type="file"
+                          id="logo"
+                          name="logo"
+                          accept="image/*"
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                        {logoPreview && (
+                          <div className="mt-2">
+                            <p className="text-sm text-gray-600 mb-2">Preview:</p>
+                            <div className="border border-gray-200 rounded-md p-2 bg-gray-50">
+                              <img
+                                src={logoPreview}
+                                alt="Logo preview"
+                                className="max-w-full h-20 object-contain mx-auto"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Address Details Section */}
+                {/* Address & Location Details Section */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Address Details</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Address & Location Details</h3>
+                  <div className="grid grid-cols-1 gap-6">
                     {/* Address */}
                     <div>
                       <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
@@ -324,20 +364,61 @@ export default function AddSocietyPage() {
                         <p className="mt-1 text-sm text-red-600">{formErrors.address}</p>
                       )}
                     </div>
-                    
-                    {/* Society Logo */}
+                  </div>
+                  
+                  {/* Location Details */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                     <div>
-                      <label htmlFor="logo" className="block text-sm font-medium text-gray-700 mb-2">
-                        Society Logo
+                      <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
+                        City
                       </label>
                       <input
-                        type="file"
-                        id="logo"
-                        name="logo"
-                        accept="image/*"
+                        type="text"
+                        id="city"
+                        name="city"
+                        value={formData.city}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter city name"
                       />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
+                        State
+                      </label>
+                      <input
+                        type="text"
+                        id="state"
+                        name="state"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter state name"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="pincode" className="block text-sm font-medium text-gray-700 mb-2">
+                        Pincode
+                      </label>
+                      <input
+                        type="text"
+                        id="pincode"
+                        name="pincode"
+                        value={formData.pincode}
+                        onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          formErrors.pincode ? 'border-red-300' : ''
+                        }`}
+                        placeholder="Enter 6-digit pincode"
+                      />
+                      {formErrors.pincode && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.pincode}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -436,64 +517,6 @@ export default function AddSocietyPage() {
                   </div>
                 </div>
 
-                {/* Location Details */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Location Details</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                      <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
-                        City
-                      </label>
-                      <input
-                        type="text"
-                        id="city"
-                        name="city"
-                        value={formData.city}
-                        onChange={handleInputChange}
-                        onBlur={handleBlur}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Enter city name"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
-                        State
-                      </label>
-                      <input
-                        type="text"
-                        id="state"
-                        name="state"
-                        value={formData.state}
-                        onChange={handleInputChange}
-                        onBlur={handleBlur}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Enter state name"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="pincode" className="block text-sm font-medium text-gray-700 mb-2">
-                        Pincode
-                      </label>
-                      <input
-                        type="text"
-                        id="pincode"
-                        name="pincode"
-                        value={formData.pincode}
-                        onChange={handleInputChange}
-                        onBlur={handleBlur}
-                        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          formErrors.pincode ? 'border-red-300' : ''
-                        }`}
-                        placeholder="Enter 6-digit pincode"
-                      />
-                      {formErrors.pincode && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.pincode}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
 
                 {/* Success Message */}
                 {success && (
