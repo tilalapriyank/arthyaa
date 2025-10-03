@@ -227,7 +227,7 @@ export async function sendEmailVerification(email: string, verificationToken: st
 }
 
 // Send welcome email for new admin users
-export async function sendWelcomeEmail(email: string, firstName: string, tempPassword?: string): Promise<boolean> {
+export async function sendWelcomeEmail(email: string, firstName: string, tempPassword?: string, setupLink?: string): Promise<boolean> {
   try {
     const transporter = createTransporter();
 
@@ -245,6 +245,8 @@ export async function sendWelcomeEmail(email: string, firstName: string, tempPas
           .header { background: #4f46e5; color: white; padding: 20px; text-align: center; }
           .content { padding: 20px; background: #f9f9f9; }
           .credentials { background: #fff; padding: 15px; border-left: 4px solid #4f46e5; margin: 20px 0; }
+          .setup-link { background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0; text-align: center; }
+          .setup-button { background: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; }
           .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
         </style>
       </head>
@@ -254,9 +256,9 @@ export async function sendWelcomeEmail(email: string, firstName: string, tempPas
             <h1>Welcome to Arthyaa</h1>
           </div>
           <div class="content">
-            <h2>Admin Account Created</h2>
+            <h2>Society Admin Account Created</h2>
             <p>Hi ${firstName},</p>
-            <p>Your admin account has been successfully created for the Arthyaa system.</p>
+            <p>Your society admin account has been successfully created for the Arthyaa system.</p>
             ${tempPassword ? `
             <div class="credentials">
               <h3>Your Login Credentials:</h3>
@@ -265,7 +267,15 @@ export async function sendWelcomeEmail(email: string, firstName: string, tempPas
               <p><em>Please change your password after your first login.</em></p>
             </div>
             ` : ''}
-            <p>You can now access the admin dashboard at: ${process.env.FRONTEND_URL}/admin/dashboard</p>
+            ${setupLink ? `
+            <div class="setup-link">
+              <h3>Complete Your Account Setup</h3>
+              <p>Click the button below to set your password and complete your account setup:</p>
+              <a href="${setupLink}" class="setup-button">Set Up Password</a>
+              <p><small>This link will expire in 7 days for security reasons.</small></p>
+            </div>
+            ` : ''}
+            <p>Once your account is set up, you can access the admin dashboard at: ${process.env.FRONTEND_URL}/admin/dashboard</p>
             <p>If you have any questions, please contact the system administrator.</p>
           </div>
           <div class="footer">

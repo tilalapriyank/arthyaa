@@ -45,6 +45,10 @@ model User {
   // Password reset
   resetToken     String?
   resetTokenExpiry DateTime?
+  
+  // Password setup for new accounts
+  setupToken     String?
+  setupTokenExpiry DateTime?
 
   // Security tracking
   lastLoginAt    DateTime?

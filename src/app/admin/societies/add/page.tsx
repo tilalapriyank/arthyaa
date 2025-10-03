@@ -65,33 +65,31 @@ export default function AddSocietyPage() {
       const response = await fetch('/api/admin/societies', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth-token') || ''}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({
           name: formData.name,
           address: formData.address,
           city: formData.city,
           state: formData.state,
           pincode: formData.pincode,
-          email: formData.adminEmail,
           mobile: formData.mobile,
           blocks: formData.blocks,
           floorsPerBlock: formData.floorsPerBlock,
           flatsPerFloor: formData.flatsPerFloor,
           totalFlats: formData.totalFlats,
-          adminEmail: formData.adminEmail,
-          logo: formData.logo
+          adminEmail: formData.adminEmail
         }),
       });
       
       const data = await response.json();
       
       if (data.success) {
-        setSuccess('Society created successfully! Admin invite email sent.');
+        setSuccess('Society created successfully! Welcome email with login credentials sent to the society admin.');
         setTimeout(() => {
           router.push('/admin/dashboard');
-        }, 2000);
+        }, 3000);
       } else {
         setError(data.message || 'Failed to create society');
       }
@@ -261,7 +259,7 @@ export default function AddSocietyPage() {
                     {/* Admin Email */}
                     <div>
                       <label htmlFor="adminEmail" className="block text-sm font-medium text-gray-700 mb-2">
-                        Admin Email Address*
+                        Email *
                       </label>
                       <input
                         type="email"

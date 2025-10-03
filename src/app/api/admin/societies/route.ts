@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { verifyToken } from '@/lib/auth';
+import { sendWelcomeEmail } from '@/lib/email';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 
 // GET /api/admin/societies - Get all societies
 export async function GET(request: NextRequest) {
   try {
-    // Verify admin authentication
-    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    // Verify admin authentication using cookies
+    const token = request.cookies.get('auth-token')?.value;
     if (!token) {
-      return NextResponse.json({ success: false, message: 'No token provided' }, { status: 401 });
+      return NextResponse.json({ success: false, message: 'No authentication token' }, { status: 401 });
     }
 
     const decoded = verifyToken(token);
@@ -47,10 +50,10 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/societies - Create new society
 export async function POST(request: NextRequest) {
   try {
-    // Verify admin authentication
-    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    // Verify admin authentication using cookies
+    const token = request.cookies.get('auth-token')?.value;
     if (!token) {
-      return NextResponse.json({ success: false, message: 'No token provided' }, { status: 401 });
+      return NextResponse.json({ success: false, message: 'No authentication token' }, { status: 401 });
     }
 
     const decoded = verifyToken(token);
@@ -65,11 +68,12 @@ export async function POST(request: NextRequest) {
       city, 
       state, 
       pincode, 
-      email, 
       mobile, 
       whatsapp, 
       blocks, 
-      flats, 
+      floorsPerBlock,
+      flatsPerFloor,
+      totalFlats,
       adminEmail 
     } = body;
 
@@ -87,6 +91,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if admin email already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: adminEmail.trim() }
+    });
+
+    if (existingUser) {
+      return NextResponse.json(
+        { success: false, message: 'A user with this email already exists' },
+        { status: 400 }
+      );
+    }
+
+    // Generate a setup token for the society admin
+    const setupToken = crypto.randomBytes(32).toString('hex');
+    const tokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+
+    // Create society
     const society = await prisma.society.create({
       data: {
         name: name.trim(),
@@ -94,12 +115,47 @@ export async function POST(request: NextRequest) {
         city: city?.trim() || null,
         state: state?.trim() || null,
         pincode: pincode?.trim() || null,
-        email: email?.trim() || null,
-        mobile: mobile?.trim() || null,
-        whatsapp: whatsapp?.trim() || null,
         blocks: blocks ? parseInt(blocks) : null,
-        flats: flats ? parseInt(flats) : null
-      },
+        flats: totalFlats ? parseInt(totalFlats) : null
+      }
+    });
+
+    // Create society admin user with setup token
+    const societyAdmin = await prisma.user.create({
+      data: {
+        email: adminEmail.trim(),
+        phone: mobile?.trim() || null,
+        password: null, // No password set initially
+        role: 'SOCIETY_ADMIN',
+        status: 'ACTIVE',
+        firstName: 'Society',
+        lastName: 'Admin',
+        isEmailVerified: false,
+        societyId: society.id,
+        setupToken: setupToken,
+        setupTokenExpiry: tokenExpiry
+      }
+    });
+
+    // Send welcome email with password setup link
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const setupLink = `${frontendUrl}/setup-password?token=${setupToken}`;
+    
+    const emailSent = await sendWelcomeEmail(
+      adminEmail.trim(),
+      'Society Admin',
+      undefined,
+      setupLink
+    );
+
+    if (!emailSent) {
+      console.error('Failed to send welcome email to:', adminEmail);
+      // Don't fail the request, just log the error
+    }
+
+    // Get society with user count
+    const societyWithCount = await prisma.society.findUnique({
+      where: { id: society.id },
       include: {
         _count: {
           select: {
@@ -109,18 +165,10 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // TODO: Send admin invite email
-    // This would typically involve:
-    // 1. Generating a secure token for the admin
-    // 2. Sending an email with a link to set password
-    // 3. Creating a pending admin user record
-    
-    console.log(`Admin invite email should be sent to: ${adminEmail} for society: ${name}`);
-
     return NextResponse.json({
       success: true,
-      society,
-      message: 'Society created successfully'
+      society: societyWithCount,
+      message: 'Society created successfully and admin invite email sent'
     });
   } catch (error) {
     console.error('Error creating society:', error);

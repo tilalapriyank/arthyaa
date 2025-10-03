@@ -63,9 +63,7 @@ export default function AdminDashboard() {
   const fetchSocieties = async () => {
     try {
       const response = await fetch('/api/admin/societies', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth-token') || ''}`
-        }
+        credentials: 'include'
       });
       const data = await response.json();
       if (data.success) {
@@ -85,9 +83,7 @@ export default function AdminDashboard() {
     try {
       const response = await fetch(`/api/admin/societies/${societyId}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth-token') || ''}`
-        }
+        credentials: 'include'
       });
       
       const data = await response.json();
