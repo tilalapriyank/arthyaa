@@ -246,7 +246,7 @@ export async function sendWelcomeEmail(email: string, firstName: string, tempPas
           .content { padding: 20px; background: #f9f9f9; }
           .credentials { background: #fff; padding: 15px; border-left: 4px solid #4f46e5; margin: 20px 0; }
           .setup-link { background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0; text-align: center; }
-          .setup-button { background: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; }
+          .setup-button { background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 500; }
           .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
         </style>
       </head>
@@ -275,7 +275,6 @@ export async function sendWelcomeEmail(email: string, firstName: string, tempPas
               <p><small>This link will expire in 7 days for security reasons.</small></p>
             </div>
             ` : ''}
-            <p>Once your account is set up, you can access the admin dashboard at: ${process.env.FRONTEND_URL}/admin/dashboard</p>
             <p>If you have any questions, please contact the system administrator.</p>
           </div>
           <div class="footer">
