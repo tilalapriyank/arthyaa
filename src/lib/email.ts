@@ -76,7 +76,7 @@ function createPasswordResetTemplate(resetLink: string, userEmail: string): Emai
           <p>Click the button below to set a new password:</p>
           <a href="${resetLink}" class="button">Reset Password</a>
           <p>Or copy and paste this link into your browser:</p>
-          <p style="word-break: break-all; color: #4f46e5;">${resetLink}</p>
+          <p style="word-break: break-all; color: white;">${resetLink}</p>
           <p><strong>This link will expire in 1 hour.</strong></p>
           <p>If you didn't request this password reset, please ignore this email.</p>
         </div>

@@ -34,8 +34,7 @@ export default function SocietiesPage() {
   const [societies, setSocieties] = useState<Society[]>([]);
   const [filteredSocieties, setFilteredSocieties] = useState<Society[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterState, setFilterState] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [deleteDialog, setDeleteDialog] = useState<{
     isOpen: boolean;
     society: Society | null;
@@ -58,8 +57,8 @@ export default function SocietiesPage() {
   }, [user]);
 
   useEffect(() => {
-    filterAndSortSocieties();
-  }, [societies, searchTerm, filterState, sortBy]);
+    filterSocieties();
+  }, [societies, searchTerm]);
 
   const checkAuth = async () => {
     try {
@@ -92,10 +91,10 @@ export default function SocietiesPage() {
     }
   };
 
-  const filterAndSortSocieties = () => {
+  const filterSocieties = () => {
     let filtered = [...societies];
 
-    // Search filter
+    // Search filter only
     if (searchTerm) {
       filtered = filtered.filter(society =>
         society.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -104,33 +103,6 @@ export default function SocietiesPage() {
         society.address?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-
-    // Category filter
-    if (filterState === 'active') {
-      filtered = filtered.filter(society => society._count?.users && society._count.users > 0);
-    } else if (filterState === 'inactive') {
-      filtered = filtered.filter(society => !society._count?.users || society._count.users === 0);
-    } else if (filterState === 'recent') {
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      filtered = filtered.filter(society => new Date(society.createdAt) > thirtyDaysAgo);
-    }
-
-    // Sort
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'newest':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        case 'oldest':
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-        case 'name':
-          return a.name.localeCompare(b.name);
-        case 'members':
-          return (b._count?.users || 0) - (a._count?.users || 0);
-        default:
-          return 0;
-      }
-    });
 
     setFilteredSocieties(filtered);
   };
@@ -187,16 +159,6 @@ export default function SocietiesPage() {
     );
   }
 
-  // Calculate counts for different categories
-  const allCount = societies.length;
-  const activeCount = societies.filter(s => s._count?.users && s._count.users > 0).length;
-  const inactiveCount = societies.filter(s => !s._count?.users || s._count.users === 0).length;
-  const recentCount = societies.filter(s => {
-    const createdDate = new Date(s.createdAt);
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    return createdDate > thirtyDaysAgo;
-  }).length;
 
   return (
     <div className="w-full">
@@ -217,38 +179,55 @@ export default function SocietiesPage() {
         </a>
       </div>
 
-      {/* Search and Layout Controls */}
-      <div className="flex items-center gap-4 mb-6">
+      {/* Search and Controls */}
+      <div className="space-y-4 mb-6">
         {/* Search Bar */}
-        <div className="flex-1">
-          <div className="relative">
-            <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.3-4.3"></path>
-            </svg>
-            <input
-              type="text"
-              placeholder="Search here"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-            />
+        <div className="flex items-center gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.3-4.3"></path>
+              </svg>
+              <input
+                type="text"
+                placeholder="Search societies by name, city, state, or address..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          {/* Layout Toggle */}
+          <div className="flex border border-gray-200 rounded-lg">
+            <button 
+              onClick={() => setViewMode('grid')}
+              className={`p-2 rounded-l-lg transition-colors ${
+                viewMode === 'grid' 
+                  ? 'bg-violet-50 border border-violet-200' 
+                  : 'text-gray-400 hover:bg-gray-50'
+              }`}
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </button>
+            <button 
+              onClick={() => setViewMode('list')}
+              className={`p-2 rounded-r-lg transition-colors ${
+                viewMode === 'list' 
+                  ? 'bg-violet-50 border border-violet-200' 
+                  : 'text-gray-400 hover:bg-gray-50'
+              }`}
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+            </button>
           </div>
         </div>
 
-        {/* Layout Toggle */}
-        <div className="flex border border-gray-200 rounded-lg">
-          <button className="p-2 bg-violet-50 border border-violet-200 rounded-l-lg">
-            <svg className="h-4 w-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-            </svg>
-          </button>
-          <button className="p-2 text-gray-400 hover:bg-gray-50 rounded-r-lg">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-            </svg>
-          </button>
-        </div>
       </div>
 
       {/* Societies List */}
@@ -281,69 +260,135 @@ export default function SocietiesPage() {
               </a>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredSocieties.map((society) => (
-                <div key={society.id} className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h4 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">{society.name}</h4>
-                      <div className="space-y-2 text-sm text-gray-600">
-                        {society.address && (
-                          <p className="flex items-start">
-                            <svg className="w-4 h-4 mr-2 mt-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            <span className="line-clamp-2">{society.address}</span>
-                          </p>
-                        )}
-                        {(society.city || society.state) && (
-                          <p className="flex items-center">
-                            <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                            {[society.city, society.state].filter(Boolean).join(', ')}
-                          </p>
-                        )}
-                        {society.pincode && (
-                          <p className="flex items-center">
-                            <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-9 0a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2M9 4h6" />
-                            </svg>
-                            {society.pincode}
-                          </p>
-                        )}
+            viewMode === 'grid' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredSocieties.map((society) => (
+                  <div key={society.id} className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h4 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">{society.name}</h4>
+                        <div className="space-y-2 text-sm text-gray-600">
+                          {society.address && (
+                            <p className="flex items-start">
+                              <svg className="w-4 h-4 mr-2 mt-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              <span className="line-clamp-2">{society.address}</span>
+                            </p>
+                          )}
+                          {(society.city || society.state) && (
+                            <p className="flex items-center">
+                              <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                              </svg>
+                              {[society.city, society.state].filter(Boolean).join(', ')}
+                            </p>
+                          )}
+                          {society.pincode && (
+                            <p className="flex items-center">
+                              <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-9 0a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2M9 4h6" />
+                              </svg>
+                              {society.pincode}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteSociety(society)}
-                      className="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-lg"
-                      title="Delete society"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center mr-3">
-                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                      <button
+                        onClick={() => handleDeleteSociety(society)}
+                        className="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-lg"
+                        title="Delete society"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">{society._count?.users || 0}</p>
-                        <p className="text-xs text-gray-500">members</p>
-                      </div>
+                      </button>
                     </div>
-                    <div className="text-xs text-gray-400">
-                      Created {new Date(society.createdAt).toLocaleDateString()}
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                      <div className="flex items-center text-sm text-gray-500">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center mr-3">
+                          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900">{society._count?.users || 0}</p>
+                          <p className="text-xs text-gray-500">members</p>
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        Created {new Date(society.createdAt).toLocaleDateString()}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredSocieties.map((society) => (
+                  <div key={society.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all duration-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-lg font-semibold text-gray-900">{society.name}</h4>
+                          <button
+                            onClick={() => handleDeleteSociety(society)}
+                            className="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-lg"
+                            title="Delete society"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                          {society.address && (
+                            <div className="flex items-start">
+                              <svg className="w-4 h-4 mr-2 mt-0.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              <span className="line-clamp-2">{society.address}</span>
+                            </div>
+                          )}
+                          {(society.city || society.state) && (
+                            <div className="flex items-center">
+                              <svg className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                              </svg>
+                              {[society.city, society.state].filter(Boolean).join(', ')}
+                            </div>
+                          )}
+                          {society.pincode && (
+                            <div className="flex items-center">
+                              <svg className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-9 0a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2M9 4h6" />
+                              </svg>
+                              {society.pincode}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-6 ml-6">
+                        <div className="text-center">
+                          <div className="flex items-center text-sm text-gray-500 mb-1">
+                            <svg className="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                            </svg>
+                            <span className="font-semibold text-gray-900">{society._count?.users || 0}</span>
+                            <span className="ml-1">members</span>
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            Created {new Date(society.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
           )}
         </div>
       </div>
