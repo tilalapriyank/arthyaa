@@ -4,6 +4,77 @@ import { verifyToken } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
+// GET /api/admin/societies/[id] - Get society details
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    // Verify admin authentication using cookies
+    const token = request.cookies.get('auth-token')?.value;
+    if (!token) {
+      return NextResponse.json({ success: false, message: 'No authentication token' }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded || decoded.role !== 'ADMIN') {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 403 });
+    }
+
+    const { id } = await params;
+
+    // Get society with all related data
+    const society = await prisma.society.findUnique({
+      where: { id },
+      include: {
+        users: {
+          select: {
+            id: true,
+            email: true,
+            phone: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+            status: true,
+            memberType: true,
+            flatNumber: true,
+            blockNumber: true,
+            isSecretary: true,
+            createdAt: true,
+            lastLoginAt: true
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        },
+        _count: {
+          select: {
+            users: true
+          }
+        }
+      }
+    });
+
+    if (!society) {
+      return NextResponse.json(
+        { success: false, message: 'Society not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      society
+    });
+  } catch (error) {
+    console.error('Error fetching society details:', error);
+    return NextResponse.json(
+      { success: false, message: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
 // DELETE /api/admin/societies/[id] - Delete society
 export async function DELETE(
   request: NextRequest,
