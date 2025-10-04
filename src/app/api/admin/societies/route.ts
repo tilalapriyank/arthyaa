@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { verifyToken } from '@/lib/auth';
 import { sendWelcomeEmail } from '@/lib/email';
+import { handleFileUpload, validateFile } from '@/lib/upload';
 import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
 
 const prisma = new PrismaClient();
 
@@ -146,24 +145,25 @@ export async function POST(request: NextRequest) {
     // Handle logo file upload
     let logoPath = null;
     if (logoFile && logoFile.size > 0) {
-      const bytes = await logoFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      
-      // Create uploads directory if it doesn't exist
-      const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'societies');
-      
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
+      // Validate file
+      const validation = validateFile(logoFile, ['image/jpeg', 'image/png', 'image/gif', 'image/webp'], 5);
+      if (!validation.isValid) {
+        return NextResponse.json(
+          { success: false, message: validation.error },
+          { status: 400 }
+        );
       }
       
-      // Generate unique filename
-      const fileExtension = logoFile.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
-      logoPath = `/uploads/societies/${fileName}`;
+      // Upload file
+      const uploadResult = await handleFileUpload(logoFile, 'societies');
+      if (!uploadResult.success) {
+        return NextResponse.json(
+          { success: false, message: `File upload failed: ${uploadResult.error}` },
+          { status: 500 }
+        );
+      }
       
-      // Save file
-      const filePath = path.join(uploadsDir, fileName);
-      fs.writeFileSync(filePath, buffer);
+      logoPath = uploadResult.filePath;
     }
 
     // Generate a setup token for the society admin

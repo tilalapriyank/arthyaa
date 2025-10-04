@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { handleFileUpload, validateFile } from '@/lib/upload';
 
 const prisma = new PrismaClient();
 
@@ -64,10 +65,49 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
       }
 
-      // Here you would typically upload files to a cloud storage service
-      // For now, we'll just store the file names
-      agreementDocumentPath = `documents/${Date.now()}-agreement-${agreementDocument.name}`;
-      policyVerificationDocumentPath = `documents/${Date.now()}-policy-${policyVerificationDocument.name}`;
+      // Validate agreement document
+      const agreementValidation = validateFile(agreementDocument, 
+        ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png'], 
+        10
+      );
+      if (!agreementValidation.isValid) {
+        return NextResponse.json(
+          { success: false, message: `Agreement document: ${agreementValidation.error}` },
+          { status: 400 }
+        );
+      }
+
+      // Validate policy verification document
+      const policyValidation = validateFile(policyVerificationDocument, 
+        ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png'], 
+        10
+      );
+      if (!policyValidation.isValid) {
+        return NextResponse.json(
+          { success: false, message: `Policy verification document: ${policyValidation.error}` },
+          { status: 400 }
+        );
+      }
+
+      // Upload agreement document
+      const agreementUploadResult = await handleFileUpload(agreementDocument, 'documents');
+      if (!agreementUploadResult.success) {
+        return NextResponse.json(
+          { success: false, message: `Agreement document upload failed: ${agreementUploadResult.error}` },
+          { status: 500 }
+        );
+      }
+      agreementDocumentPath = agreementUploadResult.filePath;
+
+      // Upload policy verification document
+      const policyUploadResult = await handleFileUpload(policyVerificationDocument, 'documents');
+      if (!policyUploadResult.success) {
+        return NextResponse.json(
+          { success: false, message: `Policy verification document upload failed: ${policyUploadResult.error}` },
+          { status: 500 }
+        );
+      }
+      policyVerificationDocumentPath = policyUploadResult.filePath;
     }
 
     // Create the member
