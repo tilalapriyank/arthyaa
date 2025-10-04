@@ -42,6 +42,7 @@ interface Society {
   whatsapp?: string;
   blocks?: number;
   flats?: number;
+  logo?: string;
   createdAt: string;
   updatedAt: string;
   users: Member[];
@@ -210,7 +211,16 @@ export default function SocietyDetailPage() {
                 Back to Societies
               </Link>
               <div className="h-6 w-px bg-gray-300"></div>
-              <h1 className="text-2xl font-bold text-gray-900">{society.name}</h1>
+              <div className="flex items-center space-x-3">
+                {society.logo && (
+                  <img
+                    src={society.logo}
+                    alt={`${society.name} logo`}
+                    className="w-10 h-10 rounded-lg object-cover border border-gray-200"
+                  />
+                )}
+                <h1 className="text-2xl font-bold text-gray-900">{society.name}</h1>
+              </div>
             </div>
             <div className="flex items-center space-x-3">
               <Link

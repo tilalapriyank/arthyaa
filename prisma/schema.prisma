@@ -99,6 +99,7 @@ model Society {
   whatsapp    String?
   blocks      Int?
   flats       Int?
+  logo        String?  // Path to logo file
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

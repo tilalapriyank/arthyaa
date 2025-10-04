@@ -41,25 +41,30 @@ export default function AddSocietyPage() {
     setSuccess('');
     
     try {
+      // Create FormData for file upload
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('address', formData.address);
+      formDataToSend.append('city', formData.city);
+      formDataToSend.append('state', formData.state);
+      formDataToSend.append('pincode', formData.pincode);
+      formDataToSend.append('mobile', formData.mobile);
+      formDataToSend.append('blocks', formData.blocks);
+      formDataToSend.append('floorsPerBlock', formData.floorsPerBlock);
+      formDataToSend.append('flatsPerFloor', formData.flatsPerFloor);
+      formDataToSend.append('totalFlats', formData.totalFlats);
+      formDataToSend.append('adminEmail', formData.adminEmail);
+      
+      // Add logo file if selected
+      const logoInput = document.getElementById('logo') as HTMLInputElement;
+      if (logoInput && logoInput.files && logoInput.files[0]) {
+        formDataToSend.append('logo', logoInput.files[0]);
+      }
+      
       const response = await fetch('/api/admin/societies', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
         credentials: 'include',
-        body: JSON.stringify({
-          name: formData.name,
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-          pincode: formData.pincode,
-          mobile: formData.mobile,
-          blocks: formData.blocks,
-          floorsPerBlock: formData.floorsPerBlock,
-          flatsPerFloor: formData.flatsPerFloor,
-          totalFlats: formData.totalFlats,
-          adminEmail: formData.adminEmail
-        }),
+        body: formDataToSend,
       });
       
       const data = await response.json();
@@ -112,6 +117,19 @@ export default function AddSocietyPage() {
       case 'address':
         if (!value.trim()) return 'Address is required';
         if (value.trim().length < 10) return 'Address must be at least 10 characters';
+        return '';
+      case 'city':
+        if (!value.trim()) return 'City is required';
+        return '';
+      case 'state':
+        if (!value.trim()) return 'State is required';
+        return '';
+      case 'pincode':
+        if (!value.trim()) return 'Pincode is required';
+        if (!/^\d{6}$/.test(value)) return 'Pincode must be 6 digits';
+        return '';
+      case 'logo':
+        if (!value.trim()) return 'Society logo is required';
         return '';
       default:
         return '';
@@ -172,21 +190,11 @@ export default function AddSocietyPage() {
   const validateForm = () => {
     const errors: {[key: string]: string} = {};
     
-    // Validate all required fields
-    const requiredFields = ['name', 'adminEmail', 'mobile', 'address', 'blocks', 'floorsPerBlock', 'flatsPerFloor'];
+    // Validate all fields as required
+    const requiredFields = ['name', 'adminEmail', 'mobile', 'address', 'city', 'state', 'pincode', 'blocks', 'floorsPerBlock', 'flatsPerFloor', 'logo'];
     requiredFields.forEach(field => {
       const error = validateField(field, formData[field as keyof typeof formData]);
       if (error) errors[field] = error;
-    });
-    
-    // Validate optional fields if they have values
-    const optionalFields = ['pincode', 'city', 'state'];
-    optionalFields.forEach(field => {
-      const value = formData[field as keyof typeof formData];
-      if (value && value.trim()) {
-        const error = validateField(field, value);
-        if (error) errors[field] = error;
-      }
     });
     
     setFormErrors(errors);
@@ -288,17 +296,23 @@ export default function AddSocietyPage() {
                     {/* Society Logo */}
                     <div>
                       <label htmlFor="logo" className="block text-sm font-medium text-gray-700 mb-2">
-                        Society Logo
+                        Society Logo*
                       </label>
                       <div className="space-y-3">
                         <input
                           type="file"
                           id="logo"
                           name="logo"
+                          required
                           accept="image/*"
                           onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                            formErrors.logo ? 'border-red-300' : ''
+                          }`}
                         />
+                        {formErrors.logo && (
+                          <p className="mt-1 text-sm text-red-600">{formErrors.logo}</p>
+                        )}
                         {logoPreview && (
                           <div className="mt-2">
                             <p className="text-sm text-gray-600 mb-2">Preview:</p>
@@ -349,44 +363,57 @@ export default function AddSocietyPage() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                     <div>
                       <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
-                        City
+                        City*
                       </label>
                       <input
                         type="text"
                         id="city"
                         name="city"
+                        required
                         value={formData.city}
                         onChange={handleInputChange}
                         onBlur={handleBlur}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          formErrors.city ? 'border-red-300' : ''
+                        }`}
                         placeholder="Enter city name"
                       />
+                      {formErrors.city && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.city}</p>
+                      )}
                     </div>
                     
                     <div>
                       <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
-                        State
+                        State*
                       </label>
                       <input
                         type="text"
                         id="state"
                         name="state"
+                        required
                         value={formData.state}
                         onChange={handleInputChange}
                         onBlur={handleBlur}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          formErrors.state ? 'border-red-300' : ''
+                        }`}
                         placeholder="Enter state name"
                       />
+                      {formErrors.state && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.state}</p>
+                      )}
                     </div>
 
                     <div>
                       <label htmlFor="pincode" className="block text-sm font-medium text-gray-700 mb-2">
-                        Pincode
+                        Pincode*
                       </label>
                       <input
                         type="text"
                         id="pincode"
                         name="pincode"
+                        required
                         value={formData.pincode}
                         onChange={handleInputChange}
                         onBlur={handleBlur}
