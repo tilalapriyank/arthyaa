@@ -3,6 +3,8 @@ import { PrismaClient } from '@prisma/client';
 import { verifyToken } from '@/lib/auth';
 import { sendWelcomeEmail } from '@/lib/email';
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 
 const prisma = new PrismaClient();
 
@@ -69,8 +71,6 @@ export async function POST(request: NextRequest) {
     const pincode = formData.get('pincode') as string;
     const mobile = formData.get('mobile') as string;
     const blocks = formData.get('blocks') as string;
-    const floorsPerBlock = formData.get('floorsPerBlock') as string;
-    const flatsPerFloor = formData.get('flatsPerFloor') as string;
     const totalFlats = formData.get('totalFlats') as string;
     const adminEmail = formData.get('adminEmail') as string;
     const logoFile = formData.get('logo') as File;
@@ -150,8 +150,6 @@ export async function POST(request: NextRequest) {
       const buffer = Buffer.from(bytes);
       
       // Create uploads directory if it doesn't exist
-      const fs = require('fs');
-      const path = require('path');
       const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'societies');
       
       if (!fs.existsSync(uploadsDir)) {

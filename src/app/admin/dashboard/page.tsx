@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 
 interface User {
@@ -219,7 +221,7 @@ export default function AdminDashboard() {
               <h3 className="text-xl font-bold text-gray-900">Recently Added Societies</h3>
               <p className="text-gray-600">Latest societies created in the system</p>
                   </div>
-                  <a
+                  <Link
               href="/admin/societies"
               className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-blue-600 hover:text-blue-700 h-10 px-4 py-2"
                   >
@@ -227,7 +229,7 @@ export default function AdminDashboard() {
               <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
-                  </a>
+                  </Link>
                 </div>
 
           {/* Recent Societies List */}
@@ -241,7 +243,7 @@ export default function AdminDashboard() {
                       </div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-2">No societies yet</h4>
                 <p className="text-gray-600 mb-4">Create your first society to get started</p>
-                      <a
+                      <Link
                         href="/admin/societies/add"
                         className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
                       >
@@ -249,16 +251,18 @@ export default function AdminDashboard() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
                   Create First Society
-                      </a>
+                      </Link>
                     </div>
                   ) : (
               societies.slice(0, 5).map((society) => (
                 <div key={society.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                   <div className="flex items-center space-x-4">
                     {society.logo ? (
-                      <img
+                      <Image
                         src={society.logo}
                         alt={`${society.name} logo`}
+                        width={48}
+                        height={48}
                         className="w-12 h-12 rounded-lg object-cover border border-gray-200"
                       />
                     ) : (
@@ -290,7 +294,7 @@ export default function AdminDashboard() {
                               </div>
                             </div>
                   <div className="flex items-center space-x-2">
-                    <a
+                    <Link
                       href={`/admin/societies/${society.id}`}
                       className="inline-flex items-center px-2 py-1 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors"
                     >
@@ -299,7 +303,7 @@ export default function AdminDashboard() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                       View
-                    </a>
+                    </Link>
                     <span className="text-xs text-gray-500">
                       {new Date(society.createdAt).toLocaleDateString()}
                     </span>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 interface User {
   id: string;
@@ -94,7 +95,7 @@ export default function AdminLayout({
           <div className="px-3 py-2">
             <p className="px-1 text-xs font-normal text-gray-500 uppercase tracking-wider">GENERAL</p>
             <nav className="mt-2 space-y-1">
-              <a 
+              <Link 
                 title="Dashboard" 
                 className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
                   pathname === '/admin/dashboard' 
@@ -112,9 +113,9 @@ export default function AdminLayout({
                   </svg>
                 </div>
                 <span className="flex-1">Dashboard</span>
-              </a>
+              </Link>
               
-              <a 
+              <Link 
                 title="Society Management" 
                 className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
                   pathname.startsWith('/admin/societies') 
@@ -137,7 +138,7 @@ export default function AdminLayout({
                   </svg>
                 </div>
                 <span className="flex-1">Society Management</span>
-              </a>
+              </Link>
             </nav>
           </div>
         </div>

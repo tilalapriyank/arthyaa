@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 
 interface User {
@@ -169,7 +171,7 @@ export default function SocietiesPage() {
           <h1 className="text-3xl font-bold text-gray-900">Society Management</h1>
           <p className="text-gray-600 mt-1">Manage your societies and track their performance</p>
         </div>
-        <a
+        <Link
           href="/admin/societies/add"
           className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-violet-600 text-white hover:bg-violet-700 h-10 px-4 py-2"
         >
@@ -177,7 +179,7 @@ export default function SocietiesPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
           Add Society
-        </a>
+        </Link>
       </div>
 
       {/* Search and Controls */}
@@ -248,7 +250,7 @@ export default function SocietiesPage() {
               : 'Try adjusting your search or filter criteria to find what you\'re looking for.'
             }
           </p>
-          <a
+          <Link
             href="/admin/societies/add"
             className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
           >
@@ -256,7 +258,7 @@ export default function SocietiesPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
             Create Your First Society
-          </a>
+          </Link>
         </div>
       ) : (
         viewMode === 'grid' ? (
@@ -269,9 +271,11 @@ export default function SocietiesPage() {
                     {/* Society Logo */}
                     <div className="flex-shrink-0">
                       {society.logo ? (
-                        <img
+                        <Image
                           src={society.logo}
                           alt={`${society.name} logo`}
+                          width={48}
+                          height={48}
                           className="w-12 h-12 rounded-lg object-cover border border-gray-200"
                         />
                       ) : (
@@ -343,7 +347,7 @@ export default function SocietiesPage() {
                       </div>
                     </div>
                   </div>
-                  <a
+                  <Link
                     href={`/admin/societies/${society.id}`}
                     className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
                   >
@@ -352,7 +356,7 @@ export default function SocietiesPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
                     View Details
-                  </a>
+                  </Link>
                 </div>
 
                 {/* Creation date */}
@@ -392,9 +396,11 @@ export default function SocietiesPage() {
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
                             {society.logo ? (
-                              <img
+                              <Image
                                 src={society.logo}
                                 alt={`${society.name} logo`}
+                                width={40}
+                                height={40}
                                 className="h-10 w-10 rounded-lg object-cover border border-gray-200"
                               />
                             ) : (
@@ -439,7 +445,7 @@ export default function SocietiesPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-2">
-                          <a
+                          <Link
                             href={`/admin/societies/${society.id}`}
                             className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
                           >
@@ -448,7 +454,7 @@ export default function SocietiesPage() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
                             View
-                          </a>
+                          </Link>
                           <button
                             onClick={() => handleDeleteSociety(society)}
                             className="text-gray-400 hover:text-red-500 transition-colors p-1.5 hover:bg-red-50 rounded-lg"

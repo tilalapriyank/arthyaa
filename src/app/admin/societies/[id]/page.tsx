@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface User {
   id: string;
@@ -79,17 +80,7 @@ export default function SocietyDetailPage() {
     }
   }, [router]);
 
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
-  useEffect(() => {
-    if (user && societyId) {
-      fetchSocietyDetails();
-    }
-  }, [user, societyId]);
-
-  const fetchSocietyDetails = async () => {
+  const fetchSocietyDetails = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch(`/api/admin/societies/${societyId}`, {
@@ -108,7 +99,17 @@ export default function SocietyDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [societyId]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  useEffect(() => {
+    if (user && societyId) {
+      fetchSocietyDetails();
+    }
+  }, [user, societyId, fetchSocietyDetails]);
 
   const filteredMembers = society?.users.filter(member => {
     switch (memberFilter) {
@@ -136,16 +137,6 @@ export default function SocietyDetailPage() {
     }
   };
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'SOCIETY_ADMIN':
-        return 'bg-blue-100 text-blue-800';
-      case 'MEMBER':
-        return 'bg-green-100 text-green-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
 
   if (isLoading) {
     return (
@@ -182,7 +173,7 @@ export default function SocietyDetailPage() {
         <div className="text-center">
           <div className="text-gray-500 text-6xl mb-4">🏢</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Society Not Found</h1>
-          <p className="text-gray-600 mb-4">The society you're looking for doesn't exist.</p>
+          <p className="text-gray-600 mb-4">The society you&apos;re looking for doesn&apos;t exist.</p>
           <Link
             href="/admin/societies"
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -218,9 +209,11 @@ export default function SocietyDetailPage() {
               <div className="flex-1">
                 <div className="flex items-center space-x-4 mb-2">
                   {society.logo && (
-                    <img
+                    <Image
                       src={society.logo}
                       alt={`${society.name} logo`}
+                      width={48}
+                      height={48}
                       className="w-12 h-12 rounded-lg object-cover"
                     />
                   )}
