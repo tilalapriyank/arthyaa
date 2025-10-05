@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { sendOTP, verifyOTP, initializeRecaptcha, clearRecaptcha } from '@/lib/firebase';
 import type { ConfirmationResult } from 'firebase/auth';
+import TestimonialSlider, { memberTestimonials } from '@/components/TestimonialSlider';
 
 export default function MemberLoginPage() {
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
@@ -382,63 +383,28 @@ export default function MemberLoginPage() {
             </div>
 
             {/* Right Section - Testimonial/Marketing */}
-            <div className="lg:w-1/2 bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800 p-8 lg:p-12 flex flex-col justify-center relative overflow-hidden">
+            <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center relative overflow-hidden bg-blue-500">
               {/* Background Pattern */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-400/30 to-indigo-600/30"></div>
+              <div className="absolute inset-0"></div>
+              
+              {/* ARTHYAA Logo Background */}
+              <div 
+                className="absolute inset-0 opacity-15"
+                style={{
+                  backgroundImage: 'url("/arthyaa-logo.svg  ")',
+                  backgroundSize: 'contain',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat'
+                }}
+              ></div>
+              
               <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-20 translate-x-20"></div>
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-16 -translate-x-16"></div>
               <div className="absolute top-1/2 left-1/2 w-24 h-24 bg-white/5 rounded-full -translate-x-12 -translate-y-12"></div>
               
+              {/* Testimonial Slider */}
               <div className="relative z-10">
-                {/* Feature Tags */}
-                <div className="flex flex-wrap gap-3 mb-8">
-                  <span className="px-4 py-2 bg-white/20 text-white text-sm rounded-full border border-white/30 backdrop-blur-sm">
-                    📱 Easy OTP Login
-                  </span>
-                  <span className="px-4 py-2 bg-white/20 text-white text-sm rounded-full border border-white/30 backdrop-blur-sm">
-                    🏘️ Society Management
-                  </span>
-                </div>
-
-                {/* Main Content */}
-                <div className="mb-8">
-                  <h2 className="text-3xl font-bold text-white mb-4">
-                    Connect with Your Society
-                  </h2>
-                  <p className="text-blue-100 text-lg leading-relaxed mb-6">
-                    Access your society&apos;s services, stay updated with announcements, and manage your membership with ease.
-                  </p>
-                </div>
-
-                {/* Testimonial */}
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/20">
-                  <div className="flex items-start mb-4">
-                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-white font-semibold">Rajesh Kumar</p>
-                      <p className="text-blue-100 text-sm">Society Secretary</p>
-                    </div>
-                  </div>
-                  <p className="text-white text-lg leading-relaxed">
-                    &ldquo;I was able to streamline my society management by 40% using Arthyaa&apos;s comprehensive platform.&rdquo;
-                  </p>
-                </div>
-
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                    <div className="text-2xl font-bold text-white">10K+</div>
-                    <div className="text-blue-100 text-sm">Active Members</div>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                    <div className="text-2xl font-bold text-white">500+</div>
-                    <div className="text-blue-100 text-sm">Societies</div>
-                  </div>
-                </div>
+                <TestimonialSlider testimonials={memberTestimonials} />
               </div>
             </div>
           </div>
