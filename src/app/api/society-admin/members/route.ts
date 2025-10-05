@@ -134,10 +134,10 @@ export async function POST(request: NextRequest) {
     });
 
     if (!flat) {
-      return NextResponse.json({ 
-        success: false, 
+        return NextResponse.json({ 
+          success: false, 
         message: 'Invalid flat selected' 
-      }, { status: 400 });
+        }, { status: 400 });
     }
 
     // Create the member
