@@ -326,25 +326,27 @@ function SocietyAdminLayoutContent({
         {/* Header */}
         <header className="h-16 border-b border-gray-200 bg-white sticky top-0 z-10">
           <div className="flex items-center justify-between h-full px-4">
-            {/* Arthyaa Logo - Only for ADMIN */}
-            {user?.role === 'ADMIN' && (
-              <div className="flex items-center">
+            {/* Left side - Arthyaa Logo for ADMIN, empty for SOCIETY_ADMIN */}
+            <div className="flex items-center">
+              {user?.role === 'ADMIN' && (
                 <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-cyan-600">Arthyaa</span>
-              </div>
-            )}
+              )}
+            </div>
             
-            {/* Logout Button */}
-            <button
-              onClick={handleLogout}
-              className="flex items-center space-x-2 px-3 py-2 hover:bg-gray-50 rounded-md text-gray-600 transition-colors cursor-pointer"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <polyline points="16 17 21 12 16 7"></polyline>
-                <line x1="21" x2="9" y1="12" y2="12"></line>
-              </svg>
-              <span className="text-sm font-medium">Logout</span>
-            </button>
+            {/* Right side - Logout Button */}
+            <div className="flex items-center">
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-2 px-3 py-2 hover:bg-gray-50 rounded-md text-gray-600 transition-colors cursor-pointer"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" x2="9" y1="12" y2="12"></line>
+                </svg>
+                <span className="text-sm font-medium">Logout</span>
+              </button>
+            </div>
           </div>
         </header>
 
