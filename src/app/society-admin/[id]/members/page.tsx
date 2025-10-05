@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 
 interface User {
@@ -46,7 +46,8 @@ export default function MembersPage() {
     isLoading: false
   });
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const params = useParams();
+  const id = params.id as string;
 
   const checkAuth = useCallback(async () => {
     try {
@@ -55,6 +56,7 @@ export default function MembersPage() {
 
       if (data.success && (data.user.role === 'SOCIETY_ADMIN' || data.user.role === 'ADMIN')) {
         setUser(data.user);
+        setSocietyId(id);
       } else {
         router.push('/admin/login');
       }
@@ -63,19 +65,11 @@ export default function MembersPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [router]);
+  }, [router, id]);
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
-
-  useEffect(() => {
-    // Get society ID from URL parameters
-    const societyIdParam = searchParams.get('societyId');
-    if (societyIdParam) {
-      setSocietyId(societyIdParam);
-    }
-  }, [searchParams]);
 
   useEffect(() => {
     if (user) {
@@ -238,9 +232,10 @@ export default function MembersPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Member Management</h1>
           <p className="text-gray-600 mt-1">Manage society members and track their information</p>
+          <p className="text-sm text-gray-500">Society ID: {societyId}</p>
         </div>
         <a
-          href={`/society-admin/members/add${societyId ? `?societyId=${societyId}` : ''}`}
+          href={`/society-admin/${societyId}/members/add`}
           className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-violet-600 text-white hover:bg-violet-700 h-10 px-4 py-2"
         >
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -354,7 +349,7 @@ export default function MembersPage() {
                 }
               </p>
               <a
-                href={`/society-admin/members/add${societyId ? `?societyId=${societyId}` : ''}`}
+                href={`/society-admin/${societyId}/members/add`}
                 className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

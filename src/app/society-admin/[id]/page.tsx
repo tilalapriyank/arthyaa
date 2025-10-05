@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 
 interface User {
   id: string;
@@ -13,12 +13,13 @@ interface User {
   isSecretary?: boolean;
 }
 
-export default function SocietyAdminDashboard() {
+export default function SocietyAdminPage() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [societyId, setSocietyId] = useState<string | null>(null);
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const params = useParams();
+  const id = params.id as string;
 
   const checkAuth = useCallback(async () => {
     try {
@@ -27,6 +28,7 @@ export default function SocietyAdminDashboard() {
 
       if (data.success && (data.user.role === 'SOCIETY_ADMIN' || data.user.role === 'ADMIN')) {
         setUser(data.user);
+        setSocietyId(id);
       } else {
         router.push('/admin/login');
       }
@@ -35,19 +37,11 @@ export default function SocietyAdminDashboard() {
     } finally {
       setIsLoading(false);
     }
-  }, [router]);
+  }, [router, id]);
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
-
-  useEffect(() => {
-    // Get society ID from URL parameters
-    const societyIdParam = searchParams.get('societyId');
-    if (societyIdParam) {
-      setSocietyId(societyIdParam);
-    }
-  }, [searchParams]);
 
   if (isLoading) {
     return (
@@ -68,6 +62,7 @@ export default function SocietyAdminDashboard() {
         <p className="text-gray-600">
           Welcome, {user?.firstName} {user?.lastName}
         </p>
+        <p className="text-sm text-gray-500">Society ID: {societyId}</p>
       </div>
 
       {/* Key Metric Cards */}
@@ -145,7 +140,7 @@ export default function SocietyAdminDashboard() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <a
-              href="/society-admin/members"
+              href={`/society-admin/${societyId}/members`}
               className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
@@ -160,7 +155,7 @@ export default function SocietyAdminDashboard() {
             </a>
 
             <a
-              href="/society-admin/finance"
+              href={`/society-admin/${societyId}/finance`}
               className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-4">
@@ -175,7 +170,7 @@ export default function SocietyAdminDashboard() {
             </a>
 
             <a
-              href="/society-admin/dues"
+              href={`/society-admin/${societyId}/dues`}
               className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
@@ -190,7 +185,7 @@ export default function SocietyAdminDashboard() {
             </a>
 
             <a
-              href="/society-admin/announcements"
+              href={`/society-admin/${societyId}/announcements`}
               className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-4">

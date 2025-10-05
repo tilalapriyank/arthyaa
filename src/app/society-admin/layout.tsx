@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
 interface User {
   id: string;
@@ -20,15 +20,17 @@ export default function SocietyAdminLayout({
 }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [societyId, setSocietyId] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me');
       const data = await response.json();
 
-      if (data.success && data.user.role === 'SOCIETY_ADMIN') {
+      if (data.success && (data.user.role === 'SOCIETY_ADMIN' || data.user.role === 'ADMIN')) {
         setUser(data.user);
       } else {
         router.push('/admin/login');
@@ -43,6 +45,27 @@ export default function SocietyAdminLayout({
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  useEffect(() => {
+    // Get society ID from URL path or parameters
+    const societyIdParam = searchParams.get('societyId');
+    if (societyIdParam) {
+      setSocietyId(societyIdParam);
+    } else {
+      // Extract society ID from pathname like /society-admin/{id}/members
+      const pathParts = pathname.split('/');
+      console.log('Layout - pathname:', pathname, 'pathParts:', pathParts);
+      if (pathParts.length >= 3 && pathParts[1] === 'society-admin') {
+        // Check if the second segment is a society ID (not a known route)
+        const secondSegment = pathParts[2];
+        const knownRoutes = ['dashboard', 'members', 'finance', 'dues', 'announcements', 'settings', 'notifications'];
+        if (!knownRoutes.includes(secondSegment)) {
+          console.log('Setting society ID:', secondSegment);
+          setSocietyId(secondSegment);
+        }
+      }
+    }
+  }, [searchParams, pathname]);
 
   const handleLogout = async () => {
     try {
@@ -87,14 +110,15 @@ export default function SocietyAdminLayout({
               <a 
                 title="Dashboard" 
                 className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
-                  pathname === '/society-admin/dashboard' 
+                  pathname === '/society-admin/dashboard' || (pathname.startsWith('/society-admin/') && pathname.split('/').length === 3 && !pathname.includes('/members') && !pathname.includes('/finance') && !pathname.includes('/dues') && !pathname.includes('/announcements'))
                     ? 'text-black bg-gray-50 shadow-sm border border-gray-200' 
                     : 'text-[#45474B] hover:bg-gray-50'
                 }`} 
-                href="/society-admin/dashboard"
+                href={user?.role === 'ADMIN' && societyId ? `/society-admin/${societyId}` : '/society-admin/dashboard'}
+                onClick={() => console.log('Dashboard click - user role:', user?.role, 'societyId:', societyId)}
               >
                 <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
-                  pathname === '/society-admin/dashboard' ? 'text-violet-600' : 'text-[#45474B]'
+                  pathname === '/society-admin/dashboard' || (pathname.startsWith('/society-admin/') && pathname.split('/').length === 3 && !pathname.includes('/members') && !pathname.includes('/finance') && !pathname.includes('/dues') && !pathname.includes('/announcements')) ? 'text-violet-600' : 'text-[#45474B]'
                 }`}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 22 21" fill="none">
                     <path d="M2.74415 5.63814L8.74415 1.54058C10.1046 0.611517 11.8954 0.611515 13.2558 1.54058L19.2558 5.63814C20.3472 6.38347 21 7.61975 21 8.94134V16C21 18.2091 19.2091 20 17 20H5C2.79086 20 1 18.2091 1 16V8.94134C1 7.61975 1.65278 6.38347 2.74415 5.63814Z" stroke="currentColor"></path>
@@ -112,14 +136,14 @@ export default function SocietyAdminLayout({
               <a 
                 title="Members" 
                 className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
-                  pathname.startsWith('/society-admin/members') 
+                  pathname.startsWith('/society-admin/members') || pathname.includes('/members')
                     ? 'text-black bg-gray-50 shadow-sm border border-gray-200' 
                     : 'text-[#45474B] hover:bg-gray-50'
                 }`} 
-                href="/society-admin/members"
+                href={user?.role === 'ADMIN' && societyId ? `/society-admin/${societyId}/members` : '/society-admin/members'}
               >
                 <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
-                  pathname.startsWith('/society-admin/members') ? 'text-violet-600' : 'text-[#45474B]'
+                  pathname.startsWith('/society-admin/members') || pathname.includes('/members') ? 'text-violet-600' : 'text-[#45474B]'
                 }`}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
@@ -131,14 +155,14 @@ export default function SocietyAdminLayout({
               <a 
                 title="Society Settings" 
                 className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
-                  pathname.startsWith('/society-admin/settings') 
+                  pathname.startsWith('/society-admin/settings') || pathname.includes('/settings')
                     ? 'text-black bg-gray-50 shadow-sm border border-gray-200' 
                     : 'text-[#45474B] hover:bg-gray-50'
                 }`} 
-                href="/society-admin/settings"
+                href={user?.role === 'ADMIN' && societyId ? `/society-admin/${societyId}/settings` : '/society-admin/settings'}
               >
                 <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
-                  pathname.startsWith('/society-admin/settings') ? 'text-violet-600' : 'text-[#45474B]'
+                  pathname.startsWith('/society-admin/settings') || pathname.includes('/settings') ? 'text-violet-600' : 'text-[#45474B]'
                 }`}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
@@ -155,14 +179,14 @@ export default function SocietyAdminLayout({
               <a 
                 title="Financial Management" 
                 className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
-                  pathname.startsWith('/society-admin/finance') 
+                  pathname.startsWith('/society-admin/finance') || pathname.includes('/finance')
                     ? 'text-black bg-gray-50 shadow-sm border border-gray-200' 
                     : 'text-[#45474B] hover:bg-gray-50'
                 }`} 
-                href="/society-admin/finance"
+                href={user?.role === 'ADMIN' && societyId ? `/society-admin/${societyId}/finance` : '/society-admin/finance'}
               >
                 <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
-                  pathname.startsWith('/society-admin/finance') ? 'text-violet-600' : 'text-[#45474B]'
+                  pathname.startsWith('/society-admin/finance') || pathname.includes('/finance') ? 'text-violet-600' : 'text-[#45474B]'
                 }`}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
@@ -174,14 +198,14 @@ export default function SocietyAdminLayout({
               <a 
                 title="Dues Collection" 
                 className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
-                  pathname.startsWith('/society-admin/dues') 
+                  pathname.startsWith('/society-admin/dues') || pathname.includes('/dues')
                     ? 'text-black bg-gray-50 shadow-sm border border-gray-200' 
                     : 'text-[#45474B] hover:bg-gray-50'
                 }`} 
-                href="/society-admin/dues"
+                href={user?.role === 'ADMIN' && societyId ? `/society-admin/${societyId}/dues` : '/society-admin/dues'}
               >
                 <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
-                  pathname.startsWith('/society-admin/dues') ? 'text-violet-600' : 'text-[#45474B]'
+                  pathname.startsWith('/society-admin/dues') || pathname.includes('/dues') ? 'text-violet-600' : 'text-[#45474B]'
                 }`}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
@@ -198,11 +222,11 @@ export default function SocietyAdminLayout({
               <a 
                 title="Notifications" 
                 className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
-                  pathname.startsWith('/society-admin/notifications') 
+                  pathname.startsWith('/society-admin/notifications') || pathname.includes('/notifications')
                     ? 'text-black bg-gray-50 shadow-sm border border-gray-200' 
                     : 'text-[#45474B] hover:bg-gray-50'
                 }`} 
-                href="/society-admin/notifications"
+                href={user?.role === 'ADMIN' && societyId ? `/society-admin/${societyId}/notifications` : '/society-admin/notifications'}
               >
                 <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
                   pathname.startsWith('/society-admin/notifications') ? 'text-violet-600' : 'text-[#45474B]'
@@ -217,11 +241,11 @@ export default function SocietyAdminLayout({
               <a 
                 title="Announcements" 
                 className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
-                  pathname.startsWith('/society-admin/announcements') 
+                  pathname.startsWith('/society-admin/announcements') || pathname.includes('/announcements')
                     ? 'text-black bg-gray-50 shadow-sm border border-gray-200' 
                     : 'text-[#45474B] hover:bg-gray-50'
                 }`} 
-                href="/society-admin/announcements"
+                href={user?.role === 'ADMIN' && societyId ? `/society-admin/${societyId}/announcements` : '/society-admin/announcements'}
               >
                 <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
                   pathname.startsWith('/society-admin/announcements') ? 'text-violet-600' : 'text-[#45474B]'
