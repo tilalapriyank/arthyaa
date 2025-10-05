@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 
 interface User {
   id: string;
@@ -11,7 +11,6 @@ interface User {
   firstName?: string;
   lastName?: string;
   isSecretary?: boolean;
-  societyId?: string;
 }
 
 export default function AddMemberPage() {
@@ -34,6 +33,8 @@ export default function AddMemberPage() {
   const [loadingBlocks, setLoadingBlocks] = useState(false);
   const [loadingFlats, setLoadingFlats] = useState(false);
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
 
   const checkAuth = useCallback(async () => {
     try {
@@ -42,9 +43,7 @@ export default function AddMemberPage() {
 
       if (data.success && (data.user.role === 'SOCIETY_ADMIN' || data.user.role === 'ADMIN')) {
         setUser(data.user);
-        if (data.user.societyId) {
-          setSocietyId(data.user.societyId);
-        }
+        setSocietyId(id);
       } else {
         router.push('/admin/login');
       }
@@ -53,7 +52,7 @@ export default function AddMemberPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [router]);
+  }, [router, id]);
 
   useEffect(() => {
     checkAuth();
@@ -159,7 +158,7 @@ export default function AddMemberPage() {
 
       if (data.success) {
         alert('Member added successfully!');
-        router.push('/society-admin/members');
+        router.push(`/society-admin/${societyId}/members`);
       } else {
         alert('Failed to add member: ' + data.message);
       }
@@ -177,24 +176,6 @@ export default function AddMemberPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!societyId) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">No Society Found</h1>
-          <p className="text-gray-600 mb-4">You are not associated with any society.</p>
-          <button
-            onClick={() => router.push('/society-admin/dashboard')}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            ← Back to Dashboard
-          </button>
         </div>
       </div>
     );
@@ -356,7 +337,7 @@ export default function AddMemberPage() {
             <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
               <button
                 type="button"
-                onClick={() => router.push('/society-admin/members')}
+                onClick={() => router.push(`/society-admin/${societyId}/members`)}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Cancel

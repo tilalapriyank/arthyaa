@@ -85,60 +85,44 @@ export default function MembersPage() {
 
   const fetchMembers = async () => {
     try {
-      // Mock data for now - replace with actual API call
-      const mockMembers: Member[] = [
-        {
-          id: '1',
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john.doe@example.com',
-          phone: '+91 98765 43210',
-          address: '123 Main Street, Mumbai',
-          isActive: true,
-          joinedAt: '2024-01-15',
-          duesStatus: 'paid',
-          lastPaymentDate: '2024-01-01'
-        },
-        {
-          id: '2',
-          firstName: 'Jane',
-          lastName: 'Smith',
-          email: 'jane.smith@example.com',
-          phone: '+91 98765 43211',
-          address: '456 Oak Avenue, Mumbai',
-          isActive: true,
-          joinedAt: '2024-01-20',
-          duesStatus: 'pending',
-          lastPaymentDate: '2023-12-01'
-        },
-        {
-          id: '3',
-          firstName: 'Mike',
-          lastName: 'Johnson',
-          email: 'mike.johnson@example.com',
-          phone: '+91 98765 43212',
-          address: '789 Pine Road, Mumbai',
-          isActive: false,
-          joinedAt: '2023-12-01',
-          duesStatus: 'overdue',
-          lastPaymentDate: '2023-11-01'
-        },
-        {
-          id: '4',
-          firstName: 'Sarah',
-          lastName: 'Wilson',
-          email: 'sarah.wilson@example.com',
-          phone: '+91 98765 43213',
-          address: '321 Elm Street, Mumbai',
-          isActive: true,
-          joinedAt: '2024-02-01',
-          duesStatus: 'paid',
-          lastPaymentDate: '2024-02-01'
+      // For society admin without society ID, we need to get their society first
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include'
+      });
+      const userData = await response.json();
+      
+      if (userData.success && userData.user.societyId) {
+        const membersResponse = await fetch(`/api/society-admin/members?societyId=${userData.user.societyId}`, {
+          credentials: 'include'
+        });
+        const membersData = await membersResponse.json();
+        
+        if (membersData.success) {
+          // Transform API data to match component interface
+          const transformedMembers: Member[] = membersData.members.map((member: any) => ({
+            id: member.id,
+            firstName: member.firstName || '',
+            lastName: member.lastName || '',
+            email: member.email || '',
+            phone: member.phone || '',
+            address: member.address || '',
+            isActive: member.status === 'ACTIVE',
+            joinedAt: member.createdAt,
+            duesStatus: 'paid', // This would need to be calculated based on actual dues data
+            lastPaymentDate: member.lastLoginAt || undefined
+          }));
+          setMembers(transformedMembers);
+        } else {
+          console.error('Error fetching members:', membersData.message);
+          setMembers([]);
         }
-      ];
-      setMembers(mockMembers);
+      } else {
+        console.error('No society ID found for user');
+        setMembers([]);
+      }
     } catch (error) {
       console.error('Error fetching members:', error);
+      setMembers([]);
     }
   };
 
@@ -184,11 +168,20 @@ export default function MembersPage() {
     setDeleteDialog(prev => ({ ...prev, isLoading: true }));
     
     try {
-      // Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch(`/api/society-admin/members?memberId=${deleteDialog.member.id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      const data = await response.json();
       
-      setMembers(members.filter(member => member.id !== deleteDialog.member!.id));
-      setDeleteDialog({ isOpen: false, member: null, isLoading: false });
+      if (data.success) {
+        setMembers(members.filter(member => member.id !== deleteDialog.member!.id));
+        setDeleteDialog({ isOpen: false, member: null, isLoading: false });
+      } else {
+        console.error('Error deleting member:', data.message);
+        alert('Failed to delete member: ' + data.message);
+        setDeleteDialog(prev => ({ ...prev, isLoading: false }));
+      }
     } catch (error) {
       console.error('Error deleting member:', error);
       alert('Failed to delete member');
