@@ -50,6 +50,7 @@ export default function SocietySettings() {
     mobile: '',
     adminEmail: ''
   });
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -114,6 +115,26 @@ export default function SocietySettings() {
     }));
   };
 
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    // Reset form data to original society data
+    if (society) {
+      setFormData({
+        name: society.name || '',
+        address: society.address || '',
+        city: society.city || '',
+        state: society.state || '',
+        pincode: society.pincode || '',
+        mobile: society.mobile || '',
+        adminEmail: society.adminEmail || ''
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -134,6 +155,7 @@ export default function SocietySettings() {
       if (data.success) {
         setSuccess('Society details updated successfully!');
         setSociety(data.society);
+        setIsEditing(false);
         // Clear success message after 3 seconds
         setTimeout(() => setSuccess(null), 3000);
       } else {
@@ -160,11 +182,23 @@ export default function SocietySettings() {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full max-w-none">
       {/* Header Section */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Society Settings</h1>
-        <p className="text-gray-600 mt-1">Update your society's information and details</p>
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Society Settings</h1>
+          <p className="text-gray-600 mt-1">
+            {isEditing ? 'Edit your society\'s information and details' : 'View your society\'s information and details'}
+          </p>
+        </div>
+        {!isEditing && (
+          <button
+            onClick={handleEdit}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Edit Details
+          </button>
+        )}
       </div>
 
       {/* Success/Error Messages */}
@@ -201,7 +235,8 @@ export default function SocietySettings() {
       {/* Settings Form */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="px-6 py-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {isEditing ? (
+            <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Information */}
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
@@ -218,8 +253,11 @@ export default function SocietySettings() {
                     value={formData.name}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                    }`}
                     placeholder="Enter society name"
+                    readOnly={!isEditing}
                   />
                 </div>
 
@@ -332,32 +370,139 @@ export default function SocietySettings() {
             </div>
 
 
-            {/* Submit Button */}
-            <div className="flex justify-end pt-6 border-t border-gray-200">
-              <button
-                type="submit"
-                disabled={saving}
-                className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-6 py-2"
-              >
-                {saving ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Save Changes
-                  </>
-                )}
-              </button>
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
+              {isEditing ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-6 py-2"
+                  >
+                    {saving ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Save Changes
+                      </>
+                    )}
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleEdit}
+                  className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 bg-blue-600 text-white hover:bg-blue-700 h-10 px-6 py-2"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Edit Details
+                </button>
+              )}
             </div>
           </form>
+          ) : (
+            /* Display View */
+            <div className="space-y-8">
+              {/* Basic Information */}
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Society Name
+                    </label>
+                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                      {society?.name || 'Not specified'}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Pincode
+                    </label>
+                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                      {society?.pincode || 'Not specified'}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Address
+                  </label>
+                  <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                    {society?.address || 'Not specified'}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      City
+                    </label>
+                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                      {society?.city || 'Not specified'}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      State
+                    </label>
+                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                      {society?.state || 'Not specified'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Admin Email
+                    </label>
+                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                      {society?.adminEmail || 'Not specified'}
+                    </div>
+                    <p className="mt-1 text-sm text-gray-500">This is the society admin's email address</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Mobile Number
+                    </label>
+                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                      {society?.mobile || 'Not specified'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          )}
         </div>
       </div>
     </div>

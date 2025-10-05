@@ -50,6 +50,7 @@ export default function SocietySettings() {
     mobile: '',
     adminEmail: ''
   });
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -118,6 +119,26 @@ export default function SocietySettings() {
     }));
   };
 
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    // Reset form data to original society data
+    if (society) {
+      setFormData({
+        name: society.name || '',
+        address: society.address || '',
+        city: society.city || '',
+        state: society.state || '',
+        pincode: society.pincode || '',
+        mobile: society.mobile || '',
+        adminEmail: society.adminEmail || ''
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -142,6 +163,7 @@ export default function SocietySettings() {
       if (data.success) {
         setSuccess('Society details updated successfully!');
         setSociety(data.society);
+        setIsEditing(false);
         // Clear success message after 3 seconds
         setTimeout(() => setSuccess(null), 3000);
       } else {
@@ -170,9 +192,21 @@ export default function SocietySettings() {
   return (
     <div className="w-full">
       {/* Header Section */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Society Settings</h1>
-        <p className="text-gray-600 mt-1">Update your society's information and details</p>
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Society Settings</h1>
+          <p className="text-gray-600 mt-1">
+            {isEditing ? 'Edit your society\'s information and details' : 'View your society\'s information and details'}
+          </p>
+        </div>
+        {!isEditing && (
+          <button
+            onClick={handleEdit}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Edit Details
+          </button>
+        )}
       </div>
 
       {/* Success/Error Messages */}
@@ -209,7 +243,8 @@ export default function SocietySettings() {
       {/* Settings Form */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="px-6 py-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {isEditing ? (
+            <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Information */}
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
@@ -339,8 +374,15 @@ export default function SocietySettings() {
 
             </div>
 
-            {/* Submit Button */}
-            <div className="flex justify-end pt-6 border-t border-gray-200">
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
               <button
                 type="submit"
                 disabled={saving}
@@ -365,6 +407,91 @@ export default function SocietySettings() {
               </button>
             </div>
           </form>
+          ) : (
+            /* Display View */
+            <div className="space-y-8">
+              {/* Basic Information */}
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Society Name
+                    </label>
+                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                      {society?.name || 'Not specified'}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Pincode
+                    </label>
+                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                      {society?.pincode || 'Not specified'}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Address
+                  </label>
+                  <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                    {society?.address || 'Not specified'}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      City
+                    </label>
+                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                      {society?.city || 'Not specified'}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      State
+                    </label>
+                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                      {society?.state || 'Not specified'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Admin Email
+                    </label>
+                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                      {society?.adminEmail || 'Not specified'}
+                    </div>
+                    <p className="mt-1 text-sm text-gray-500">This is the society admin's email address</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Mobile Number
+                    </label>
+                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                      {society?.mobile || 'Not specified'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          )}
         </div>
       </div>
     </div>

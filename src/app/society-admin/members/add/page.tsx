@@ -204,7 +204,7 @@ export default function AddMemberPage() {
     <div className="w-full">
       {/* Page Title */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Add New Member</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Add New Member</h1>
         <p className="text-gray-600">Add a new member to your society</p>
         <p className="text-sm text-gray-500">Society ID: {societyId}</p>
       </div>
@@ -327,7 +327,7 @@ export default function AddMemberPage() {
                   </select>
                 </div>
               </div>
-            </div>
+                </div>
 
             {/* Additional Settings */}
             <div>
