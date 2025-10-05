@@ -54,13 +54,11 @@ export default function SocietyAdminLayout({
     } else {
       // Extract society ID from pathname like /society-admin/{id}/members
       const pathParts = pathname.split('/');
-      console.log('Layout - pathname:', pathname, 'pathParts:', pathParts);
       if (pathParts.length >= 3 && pathParts[1] === 'society-admin') {
         // Check if the second segment is a society ID (not a known route)
         const secondSegment = pathParts[2];
         const knownRoutes = ['dashboard', 'members', 'finance', 'dues', 'announcements', 'settings', 'notifications'];
         if (!knownRoutes.includes(secondSegment)) {
-          console.log('Setting society ID:', secondSegment);
           setSocietyId(secondSegment);
         }
       }
@@ -95,12 +93,29 @@ export default function SocietyAdminLayout({
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
       <div className="w-64 border-r border-gray-200 bg-white flex flex-col transition-all duration-300 ease-in-out h-screen fixed left-0 top-0 overflow-y-auto" style={{background: 'linear-gradient(181.23deg, rgba(245, 247, 249, 0.7) 0.75%, rgba(236, 239, 247, 0.63) 17.73%, rgba(234, 234, 247, 0.63) 34.42%, rgba(234, 230, 245, 0.7) 50.42%, rgba(238, 228, 242, 0.7) 66.42%, rgba(247, 237, 243, 0.7) 81.23%, rgba(242, 235, 238, 0.7) 99.25%)'}}>
-        {/* Logo */}
-        <div className="p-4 flex items-center justify-between relative">
-          <div className="flex items-center">
-            <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-cyan-600">Arthyaa</span>
+        {/* Logo - Only for SOCIETY_ADMIN */}
+        {user?.role === 'SOCIETY_ADMIN' && (
+          <div className="p-4 flex items-center justify-between relative">
+            <div className="flex items-center">
+              <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-cyan-600">Arthyaa</span>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Back Button for Admin */}
+        {user?.role === 'ADMIN' && societyId && (
+          <div className="p-4 border-b border-gray-200">
+            <a
+              href="/admin/societies"
+              className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Admin
+            </a>
+          </div>
+        )}
 
         {/* Navigation */}
         <div className="flex-1 overflow-y-auto">
@@ -115,7 +130,6 @@ export default function SocietyAdminLayout({
                     : 'text-[#45474B] hover:bg-gray-50'
                 }`} 
                 href={user?.role === 'ADMIN' && societyId ? `/society-admin/${societyId}` : '/society-admin/dashboard'}
-                onClick={() => console.log('Dashboard click - user role:', user?.role, 'societyId:', societyId)}
               >
                 <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
                   pathname === '/society-admin/dashboard' || (pathname.startsWith('/society-admin/') && pathname.split('/').length === 3 && !pathname.includes('/members') && !pathname.includes('/finance') && !pathname.includes('/dues') && !pathname.includes('/announcements')) ? 'text-violet-600' : 'text-[#45474B]'
@@ -288,7 +302,14 @@ export default function SocietyAdminLayout({
       <div className="flex-1 flex flex-col ml-64">
         {/* Header */}
         <header className="h-16 border-b border-gray-200 bg-white sticky top-0 z-10">
-          <div className="flex items-center justify-end h-full px-4">
+          <div className="flex items-center justify-between h-full px-4">
+            {/* Arthyaa Logo - Only for ADMIN */}
+            {user?.role === 'ADMIN' && (
+              <div className="flex items-center">
+                <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-cyan-600">Arthyaa</span>
+              </div>
+            )}
+            
             {/* Logout Button */}
             <button
               onClick={handleLogout}
