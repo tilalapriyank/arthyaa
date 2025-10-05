@@ -184,6 +184,29 @@ export default function SocietyAdminLayout({
                 </div>
                 <span className="flex-1">Society Settings</span>
               </a>
+
+              <a 
+                title="Blocks" 
+                className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
+                  pathname === '/society-admin/blocks' || pathname.startsWith('/society-admin/') && pathname.endsWith('/blocks')
+                    ? 'text-black bg-gray-50 shadow-sm border border-gray-200' 
+                    : 'text-[#45474B] hover:bg-gray-50'
+                }`} 
+                href={user?.role === 'ADMIN' && societyId ? `/society-admin/${societyId}/blocks` : '/society-admin/blocks'}
+              >
+                <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
+                  pathname === '/society-admin/blocks' || pathname.startsWith('/society-admin/') && pathname.endsWith('/blocks') ? 'text-violet-600' : 'text-[#45474B]'
+                }`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
+                    <path d="M8 21v-4a2 2 0 012-2h4a2 2 0 012 2v4" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
+                    <path d="M12 3v4" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
+                    <path d="M8 3v4" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
+                    <path d="M16 3v4" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
+                  </svg>
+                </div>
+                <span className="flex-1">Blocks</span>
+              </a>
             </nav>
           </div>
 

@@ -6,13 +6,9 @@ const prisma = new PrismaClient();
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const societyId = searchParams.get('societyId');
+    let societyId = searchParams.get('societyId');
 
     console.log('Blocks API - Society ID:', societyId);
-
-    if (!societyId) {
-      return NextResponse.json({ success: false, message: 'Society ID is required' }, { status: 400 });
-    }
 
     // Get user from session using cookies
     const cookieHeader = request.headers.get('cookie');
@@ -31,10 +27,38 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    // Fetch blocks for the society
+    // If no societyId provided, get it from user's profile (for SOCIETY_ADMIN)
+    if (!societyId) {
+      if (userData.user.role === 'SOCIETY_ADMIN') {
+        // Get society ID from user's profile
+        const user = await prisma.user.findUnique({
+          where: { id: userData.user.id },
+          include: { society: true }
+        });
+
+        if (!user?.society) {
+          return NextResponse.json({ success: false, message: 'User not associated with any society' }, { status: 400 });
+        }
+
+        societyId = user.society.id;
+        console.log('Got society ID from user profile:', societyId);
+      } else {
+        // ADMIN users must provide societyId
+        return NextResponse.json({ success: false, message: 'Society ID is required for admin users' }, { status: 400 });
+      }
+    }
+
+    // Fetch blocks for the society with flats count
     const blocks = await prisma.block.findMany({
       where: {
         societyId: societyId
+      },
+      include: {
+        _count: {
+          select: {
+            flats: true
+          }
+        }
       },
       orderBy: {
         name: 'asc'

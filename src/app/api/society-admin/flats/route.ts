@@ -34,6 +34,14 @@ export async function GET(request: NextRequest) {
       where: {
         blockId: blockId
       },
+      include: {
+        block: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      },
       orderBy: [
         { floorNumber: 'asc' },
         { name: 'asc' }
