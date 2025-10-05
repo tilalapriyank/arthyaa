@@ -20,11 +20,11 @@ export default function AddSocietyPage() {
     logo: ''
   });
   const [csvFile, setCsvFile] = useState<File | null>(null);
-  const [csvData, setCsvData] = useState<any[]>([]);
-  const [csvPreview, setCsvPreview] = useState<any[]>([]);
+  const [csvData, setCsvData] = useState<Record<string, string>[]>([]);
+  const [csvPreview, setCsvPreview] = useState<Record<string, string>[]>([]);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [editingRow, setEditingRow] = useState<number | null>(null);
-  const [editData, setEditData] = useState<any>({});
+  const [editData, setEditData] = useState<Record<string, string>>({});
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const router = useRouter();
 
@@ -38,7 +38,7 @@ export default function AddSocietyPage() {
     for (let i = 1; i < lines.length; i++) {
       const values = lines[i].split(',').map(v => v.trim());
       if (values.length === headers.length) {
-        const row: any = {};
+        const row: Record<string, string> = {};
         headers.forEach((header, index) => {
           row[header] = values[index];
         });

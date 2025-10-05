@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
     let csvData;
     try {
       csvData = JSON.parse(csvDataString);
-    } catch (error) {
+    } catch {
       return NextResponse.json(
         { success: false, message: 'Invalid CSV data format' },
         { status: 400 }
@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
     const uniqueBlocks = new Set<string>();
     
     // Extract unique blocks from CSV data
-    csvData.forEach((row: any) => {
+    csvData.forEach((row: Record<string, string>) => {
       if (row.block && row.block.trim()) {
         uniqueBlocks.add(row.block.trim());
       }
@@ -230,7 +230,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create flats
-    const flatPromises = csvData.map(async (row: any) => {
+    const flatPromises = csvData.map(async (row: Record<string, string>) => {
       if (row.block && row.flat && row.floor) {
         const blockId = blockMap.get(row.block.trim());
         if (blockId) {

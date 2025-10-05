@@ -73,17 +73,7 @@ export default function BlocksPage() {
     }
   }, [router]);
 
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
-  useEffect(() => {
-    if (user) {
-      fetchBlocks();
-    }
-  }, [user, societyId]);
-
-  const fetchBlocks = async () => {
+  const fetchBlocks = useCallback(async () => {
     try {
       setLoadingBlocks(true);
       const response = await fetch(`/api/society-admin/blocks?societyId=${societyId}`);
@@ -100,7 +90,17 @@ export default function BlocksPage() {
     } finally {
       setLoadingBlocks(false);
     }
-  };
+  }, [societyId]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  useEffect(() => {
+    if (user) {
+      fetchBlocks();
+    }
+  }, [user, societyId, fetchBlocks]);
 
   const fetchFlats = async (blockId: string) => {
     try {
@@ -357,7 +357,7 @@ export default function BlocksPage() {
                       </svg>
                     </div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">No flats found</h3>
-                    <p className="text-gray-500">This block doesn't have any flats yet</p>
+                    <p className="text-gray-500">This block doesn&apos;t have any flats yet</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

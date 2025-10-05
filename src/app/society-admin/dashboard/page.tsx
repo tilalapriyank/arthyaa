@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 interface User {
   id: string;
@@ -16,7 +17,6 @@ interface User {
 export default function SocietyAdminDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [societyId, setSocietyId] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -41,13 +41,6 @@ export default function SocietyAdminDashboard() {
     checkAuth();
   }, [checkAuth]);
 
-  useEffect(() => {
-    // Get society ID from URL parameters
-    const societyIdParam = searchParams.get('societyId');
-    if (societyIdParam) {
-      setSocietyId(societyIdParam);
-    }
-  }, [searchParams]);
 
   if (isLoading) {
     return (
@@ -144,7 +137,7 @@ export default function SocietyAdminDashboard() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <a
+            <Link
               href="/society-admin/members"
               className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
             >
@@ -157,9 +150,9 @@ export default function SocietyAdminDashboard() {
                 <h4 className="font-semibold text-gray-900">Manage Members</h4>
                 <p className="text-sm text-gray-600">Add, edit, or remove members</p>
               </div>
-            </a>
+            </Link>
 
-            <a
+            <Link
               href="/society-admin/finance"
               className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
             >
@@ -172,9 +165,9 @@ export default function SocietyAdminDashboard() {
                 <h4 className="font-semibold text-gray-900">Financial Management</h4>
                 <p className="text-sm text-gray-600">Track income and expenses</p>
               </div>
-            </a>
+            </Link>
 
-            <a
+            <Link
               href="/society-admin/dues"
               className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
             >
@@ -187,9 +180,9 @@ export default function SocietyAdminDashboard() {
                 <h4 className="font-semibold text-gray-900">Dues Collection</h4>
                 <p className="text-sm text-gray-600">Manage member dues</p>
               </div>
-            </a>
+            </Link>
 
-            <a
+            <Link
               href="/society-admin/announcements"
               className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
             >
@@ -202,7 +195,7 @@ export default function SocietyAdminDashboard() {
                 <h4 className="font-semibold text-gray-900">Announcements</h4>
                 <p className="text-sm text-gray-600">Send notifications</p>
               </div>
-            </a>
+            </Link>
           </div>
         </div>
       </div>

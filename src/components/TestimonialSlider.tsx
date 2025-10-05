@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 interface Testimonial {
   id: number;
@@ -35,17 +36,6 @@ export default function TestimonialSlider({
     return () => clearInterval(interval);
   }, [autoSlide, slideInterval, testimonials.length]);
 
-  const goToSlide = (index: number) => {
-    setCurrentIndex(index);
-  };
-
-  const goToPrevious = () => {
-    setCurrentIndex(currentIndex === 0 ? testimonials.length - 1 : currentIndex - 1);
-  };
-
-  const goToNext = () => {
-    setCurrentIndex(currentIndex === testimonials.length - 1 ? 0 : currentIndex + 1);
-  };
 
   if (testimonials.length === 0) return null;
 
@@ -58,9 +48,11 @@ export default function TestimonialSlider({
         <div className="flex items-start mb-4">
           <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4 overflow-hidden">
             {currentTestimonial.avatar ? (
-              <img 
+              <Image 
                 src={currentTestimonial.avatar} 
                 alt={currentTestimonial.name}
+                width={48}
+                height={48}
                 className="w-full h-full object-cover rounded-full"
               />
             ) : (

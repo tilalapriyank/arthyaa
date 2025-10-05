@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 
 interface User {
@@ -52,29 +52,7 @@ export default function SocietySettings() {
   });
   const [isEditing, setIsEditing] = useState(false);
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const response = await fetch('/api/auth/me');
-      const data = await response.json();
-
-      if (data.success && (data.user.role === 'SOCIETY_ADMIN' || data.user.role === 'ADMIN')) {
-        setUser(data.user);
-        fetchSocietyDetails();
-      } else {
-        router.push('/admin/login');
-      }
-    } catch {
-      router.push('/admin/login');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchSocietyDetails = async () => {
+  const fetchSocietyDetails = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/society-admin/settings?societyId=${societyId}`);
@@ -105,7 +83,29 @@ export default function SocietySettings() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [societyId]);
+
+  const checkAuth = useCallback(async () => {
+    try {
+      const response = await fetch('/api/auth/me');
+      const data = await response.json();
+
+      if (data.success && (data.user.role === 'SOCIETY_ADMIN' || data.user.role === 'ADMIN')) {
+        setUser(data.user);
+        fetchSocietyDetails();
+      } else {
+        router.push('/admin/login');
+      }
+    } catch {
+      router.push('/admin/login');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [router, fetchSocietyDetails]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -188,7 +188,7 @@ export default function SocietySettings() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Society Settings</h1>
           <p className="text-gray-600 mt-1">
-            {isEditing ? 'Edit your society\'s information and details' : 'View your society\'s information and details'}
+            {isEditing ? 'Edit your society&apos;s information and details' : 'View your society&apos;s information and details'}
           </p>
         </div>
         {!isEditing ? (
@@ -364,7 +364,7 @@ export default function SocietySettings() {
                     placeholder="Enter admin email"
                     readOnly
                   />
-                  <p className="mt-1 text-sm text-gray-500">This is the society admin's email address</p>
+                  <p className="mt-1 text-sm text-gray-500">This is the society admin&apos;s email address</p>
                 </div>
 
                 <div>
@@ -457,7 +457,7 @@ export default function SocietySettings() {
                     <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
                       {society?.adminEmail || 'Not specified'}
                     </div>
-                    <p className="mt-1 text-sm text-gray-500">This is the society admin's email address</p>
+                    <p className="mt-1 text-sm text-gray-500">This is the society admin&apos;s email address</p>
                   </div>
 
                   <div>

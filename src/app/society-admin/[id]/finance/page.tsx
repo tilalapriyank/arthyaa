@@ -3,18 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 
-interface User {
-  id: string;
-  email?: string;
-  phone?: string;
-  role: string;
-  firstName?: string;
-  lastName?: string;
-  isSecretary?: boolean;
-}
 
 export default function FinancePage() {
-  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [societyId, setSocietyId] = useState<string | null>(null);
   const router = useRouter();
@@ -27,7 +17,6 @@ export default function FinancePage() {
       const data = await response.json();
 
       if (data.success && (data.user.role === 'SOCIETY_ADMIN' || data.user.role === 'ADMIN')) {
-        setUser(data.user);
         setSocietyId(id);
       } else {
         router.push('/admin/login');

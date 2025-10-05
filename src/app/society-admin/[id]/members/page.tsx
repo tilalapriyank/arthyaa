@@ -70,17 +70,7 @@ export default function MembersPage() {
     }
   }, [router, id]);
 
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
-  useEffect(() => {
-    if (user) {
-      fetchMembers();
-    }
-  }, [user]);
-
-  const fetchMembers = async () => {
+  const fetchMembers = useCallback(async () => {
     try {
       if (!societyId) return;
       
@@ -91,21 +81,21 @@ export default function MembersPage() {
       
       if (data.success) {
         // Transform API data to match component interface
-        const transformedMembers: Member[] = data.members.map((member: any) => ({
-          id: member.id,
-          firstName: member.firstName || '',
-          lastName: member.lastName || '',
-          email: member.email || '',
-          phone: member.phone || '',
-          isActive: member.status === 'ACTIVE',
-          joinedAt: member.createdAt,
-          duesStatus: 'paid', // This would need to be calculated based on actual dues data
-          lastPaymentDate: member.lastLoginAt || undefined,
-          flatNumber: member.flatNumber || '',
-          blockNumber: member.blockNumber || '',
-          memberType: member.memberType || 'OWNER',
-          isSecretary: member.isSecretary || false,
-          status: member.status || 'ACTIVE'
+        const transformedMembers: Member[] = data.members.map((member: Record<string, unknown>) => ({
+          id: member.id as string,
+          firstName: (member.firstName as string) || '',
+          lastName: (member.lastName as string) || '',
+          email: (member.email as string) || '',
+          phone: (member.phone as string) || '',
+          isActive: (member.status as string) === 'ACTIVE',
+          joinedAt: member.createdAt as string,
+          duesStatus: 'paid' as const, // This would need to be calculated based on actual dues data
+          lastPaymentDate: (member.lastLoginAt as string) || undefined,
+          flatNumber: (member.flatNumber as string) || '',
+          blockNumber: (member.blockNumber as string) || '',
+          memberType: (member.memberType as 'OWNER' | 'TENANT') || 'OWNER',
+          isSecretary: (member.isSecretary as boolean) || false,
+          status: (member.status as string) || 'ACTIVE'
         }));
         setMembers(transformedMembers);
       } else {
@@ -116,7 +106,17 @@ export default function MembersPage() {
       console.error('Error fetching members:', error);
       setMembers([]);
     }
-  };
+  }, [societyId]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  useEffect(() => {
+    if (user) {
+      fetchMembers();
+    }
+  }, [user, fetchMembers]);
 
   const filterMembers = useCallback(() => {
     let filtered = [...members];
@@ -134,8 +134,7 @@ export default function MembersPage() {
         member.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         member.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        member.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        member.address?.toLowerCase().includes(searchTerm.toLowerCase())
+        member.phone?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -187,23 +186,6 @@ export default function MembersPage() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'paid': return 'text-green-600 bg-green-100';
-      case 'pending': return 'text-yellow-600 bg-yellow-100';
-      case 'overdue': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'paid': return '✓';
-      case 'pending': return '⏳';
-      case 'overdue': return '⚠';
-      default: return '?';
-    }
-  };
 
   if (isLoading) {
     return (

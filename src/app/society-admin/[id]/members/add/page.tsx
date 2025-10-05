@@ -3,18 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 
-interface User {
-  id: string;
-  email?: string;
-  phone?: string;
-  role: string;
-  firstName?: string;
-  lastName?: string;
-  isSecretary?: boolean;
-}
 
 export default function AddMemberPage() {
-  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [societyId, setSocietyId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,8 +18,8 @@ export default function AddMemberPage() {
     memberType: 'OWNER' as 'OWNER' | 'TENANT',
     isSecretary: false
   });
-  const [blocks, setBlocks] = useState<any[]>([]);
-  const [flats, setFlats] = useState<any[]>([]);
+  const [blocks, setBlocks] = useState<Array<{id: string, name: string}>>([]);
+  const [flats, setFlats] = useState<Array<{id: string, name: string, floorNumber: number}>>([]);
   const [loadingBlocks, setLoadingBlocks] = useState(false);
   const [loadingFlats, setLoadingFlats] = useState(false);
   const router = useRouter();
@@ -42,7 +32,6 @@ export default function AddMemberPage() {
       const data = await response.json();
 
       if (data.success && (data.user.role === 'SOCIETY_ADMIN' || data.user.role === 'ADMIN')) {
-        setUser(data.user);
         setSocietyId(id);
       } else {
         router.push('/admin/login');
@@ -54,27 +43,7 @@ export default function AddMemberPage() {
     }
   }, [router, id]);
 
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
-  // Fetch blocks when societyId is available
-  useEffect(() => {
-    if (societyId) {
-      fetchBlocks();
-    }
-  }, [societyId]);
-
-  // Fetch flats when block is selected
-  useEffect(() => {
-    if (formData.blockId) {
-      fetchFlats(formData.blockId);
-    } else {
-      setFlats([]);
-    }
-  }, [formData.blockId]);
-
-  const fetchBlocks = async () => {
+  const fetchBlocks = useCallback(async () => {
     setLoadingBlocks(true);
     try {
       console.log('Fetching blocks for society ID:', societyId);
@@ -98,7 +67,27 @@ export default function AddMemberPage() {
     } finally {
       setLoadingBlocks(false);
     }
-  };
+  }, [societyId]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  // Fetch blocks when societyId is available
+  useEffect(() => {
+    if (societyId) {
+      fetchBlocks();
+    }
+  }, [societyId, fetchBlocks]);
+
+  // Fetch flats when block is selected
+  useEffect(() => {
+    if (formData.blockId) {
+      fetchFlats(formData.blockId);
+    } else {
+      setFlats([]);
+    }
+  }, [formData.blockId]);
 
   const fetchFlats = async (blockId: string) => {
     setLoadingFlats(true);

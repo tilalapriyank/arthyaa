@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
 interface User {
@@ -13,7 +13,7 @@ interface User {
   isSecretary?: boolean;
 }
 
-export default function SocietyAdminLayout({
+function SocietyAdminLayoutContent({
   children,
 }: {
   children: React.ReactNode;
@@ -354,5 +354,24 @@ export default function SocietyAdminLayout({
         </main>
       </div>
     </div>
+  );
+}
+
+export default function SocietyAdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <SocietyAdminLayoutContent>{children}</SocietyAdminLayoutContent>
+    </Suspense>
   );
 }
