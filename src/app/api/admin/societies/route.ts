@@ -69,9 +69,8 @@ export async function POST(request: NextRequest) {
     const state = formData.get('state') as string;
     const pincode = formData.get('pincode') as string;
     const mobile = formData.get('mobile') as string;
-    const blocks = formData.get('blocks') as string;
-    const totalFlats = formData.get('totalFlats') as string;
     const adminEmail = formData.get('adminEmail') as string;
+    const csvDataString = formData.get('csvData') as string;
     const logoFile = formData.get('logo') as File;
 
     if (!name || name.trim() === '') {
@@ -130,6 +129,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!csvDataString || csvDataString.trim() === '') {
+      return NextResponse.json(
+        { success: false, message: 'CSV data is required' },
+        { status: 400 }
+      );
+    }
+
+    // Parse CSV data
+    let csvData;
+    try {
+      csvData = JSON.parse(csvDataString);
+    } catch (error) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid CSV data format' },
+        { status: 400 }
+      );
+    }
+
+    if (!Array.isArray(csvData) || csvData.length === 0) {
+      return NextResponse.json(
+        { success: false, message: 'CSV data must contain at least one record' },
+        { status: 400 }
+      );
+    }
+
     // Check if admin email already exists
     const existingUser = await prisma.user.findUnique({
       where: { email: adminEmail.trim() }
@@ -179,9 +203,61 @@ export async function POST(request: NextRequest) {
         state: state.trim(),
         pincode: pincode.trim(),
         mobile: mobile.trim(),
-        blocks: blocks ? parseInt(blocks) : null,
-        flats: totalFlats ? parseInt(totalFlats) : null,
         logo: logoPath
+      }
+    });
+
+    // Process CSV data to create blocks and flats
+    const blockMap = new Map<string, string>(); // block name -> block id
+    const uniqueBlocks = new Set<string>();
+    
+    // Extract unique blocks from CSV data
+    csvData.forEach((row: any) => {
+      if (row.block && row.block.trim()) {
+        uniqueBlocks.add(row.block.trim());
+      }
+    });
+
+    // Create blocks
+    for (const blockName of uniqueBlocks) {
+      const block = await prisma.block.create({
+        data: {
+          name: blockName,
+          societyId: society.id
+        }
+      });
+      blockMap.set(blockName, block.id);
+    }
+
+    // Create flats
+    const flatPromises = csvData.map(async (row: any) => {
+      if (row.block && row.flat && row.floor) {
+        const blockId = blockMap.get(row.block.trim());
+        if (blockId) {
+          return prisma.flat.create({
+            data: {
+              name: row.flat.trim(),
+              floorNumber: parseInt(row.floor) || 1,
+              blockId: blockId
+            }
+          });
+        }
+      }
+      return null;
+    });
+
+    const flats = await Promise.all(flatPromises);
+    const validFlats = flats.filter(flat => flat !== null);
+
+    // Update society with calculated totals
+    const totalBlocks = uniqueBlocks.size;
+    const totalFlats = validFlats.length;
+    
+    await prisma.society.update({
+      where: { id: society.id },
+      data: {
+        blocks: totalBlocks,
+        flats: totalFlats
       }
     });
 
@@ -218,13 +294,18 @@ export async function POST(request: NextRequest) {
       // Don't fail the request, just log the error
     }
 
-    // Get society with user count
+    // Get society with user count and structure
     const societyWithCount = await prisma.society.findUnique({
       where: { id: society.id },
       include: {
         _count: {
           select: {
             users: true
+          }
+        },
+        blockList: {
+          include: {
+            flats: true
           }
         }
       }

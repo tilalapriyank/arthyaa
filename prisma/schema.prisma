@@ -105,6 +105,7 @@ model Society {
 
   // Relations
   users   User[]
+  blockList  Block[]
 
   @@map("societies")
 }
@@ -161,4 +162,24 @@ model RateLimitLog {
 
   @@unique([identifier, action])
   @@map("rate_limit_logs")
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  name      String
+  societyId String
+  society   Society @relation(fields: [societyId], references: [id])
+  flats     Flat[]
+
+  @@map("blocks")
+}
+
+model Flat {
+  id        String   @id @default(cuid())
+  name      String
+  floorNumber Int
+  blockId String
+  block   Block @relation(fields: [blockId], references: [id])
+
+  @@map("flats")
 }

@@ -16,16 +16,72 @@ export default function AddSocietyPage() {
     city: '',
     state: '',
     pincode: '',
-    blocks: '',
-    floorsPerBlock: '',
-    flatsPerFloor: '',
-    totalFlats: '',
     adminEmail: '',
     logo: ''
   });
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [csvData, setCsvData] = useState<any[]>([]);
+  const [csvPreview, setCsvPreview] = useState<any[]>([]);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const router = useRouter();
 
+  const parseCSV = (csvText: string) => {
+    const lines = csvText.split('\n').filter(line => line.trim());
+    if (lines.length < 2) return [];
+    
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    const data = [];
+    
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(',').map(v => v.trim());
+      if (values.length === headers.length) {
+        const row: any = {};
+        headers.forEach((header, index) => {
+          row[header] = values[index];
+        });
+        data.push(row);
+      }
+    }
+    
+    return data;
+  };
+
+  const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      setError('Please upload a CSV file');
+      return;
+    }
+    
+    setCsvFile(file);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const csvText = event.target?.result as string;
+      const parsedData = parseCSV(csvText);
+      
+      // Validate CSV structure
+      if (parsedData.length === 0) {
+        setError('CSV file is empty or invalid format');
+        return;
+      }
+      
+      const firstRow = parsedData[0];
+      const requiredColumns = ['block', 'flat', 'floor'];
+      const missingColumns = requiredColumns.filter(col => !firstRow.hasOwnProperty(col));
+      
+      if (missingColumns.length > 0) {
+        setError(`Missing required columns: ${missingColumns.join(', ')}`);
+        return;
+      }
+      
+      setCsvData(parsedData);
+      setCsvPreview(parsedData.slice(0, 5)); // Show first 5 rows as preview
+      setError('');
+    };
+    reader.readAsText(file);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,11 +105,8 @@ export default function AddSocietyPage() {
       formDataToSend.append('state', formData.state);
       formDataToSend.append('pincode', formData.pincode);
       formDataToSend.append('mobile', formData.mobile);
-      formDataToSend.append('blocks', formData.blocks);
-      formDataToSend.append('floorsPerBlock', formData.floorsPerBlock);
-      formDataToSend.append('flatsPerFloor', formData.flatsPerFloor);
-      formDataToSend.append('totalFlats', formData.totalFlats);
       formDataToSend.append('adminEmail', formData.adminEmail);
+      formDataToSend.append('csvData', JSON.stringify(csvData));
       
       // Add logo file if selected
       const logoInput = document.getElementById('logo') as HTMLInputElement;
@@ -98,18 +151,6 @@ export default function AddSocietyPage() {
       case 'pincode':
         if (value && !/^\d{6}$/.test(value)) return 'Pincode must be 6 digits';
         return '';
-      case 'blocks':
-        if (!value.trim()) return 'Number of blocks is required';
-        if (isNaN(Number(value)) || Number(value) < 1) return 'Number of blocks must be a positive number';
-        return '';
-      case 'floorsPerBlock':
-        if (!value.trim()) return 'Floors per block is required';
-        if (isNaN(Number(value)) || Number(value) < 1) return 'Floors per block must be a positive number';
-        return '';
-      case 'flatsPerFloor':
-        if (!value.trim()) return 'Flats per floor is required';
-        if (isNaN(Number(value)) || Number(value) < 1) return 'Flats per floor must be a positive number';
-        return '';
       case 'adminEmail':
         if (!value.trim()) return 'Admin email is required';
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Please enter a valid email address';
@@ -149,25 +190,10 @@ export default function AddSocietyPage() {
       reader.readAsDataURL(file);
     }
     
-    setFormData(prev => {
-      const newData = {
-        ...prev,
-        [name]: value
-      };
-      
-      // Calculate total flats automatically
-      if (name === 'blocks' || name === 'floorsPerBlock' || name === 'flatsPerFloor') {
-        const blocks = name === 'blocks' ? Number(value) : Number(prev.blocks);
-        const floorsPerBlock = name === 'floorsPerBlock' ? Number(value) : Number(prev.floorsPerBlock);
-        const flatsPerFloor = name === 'flatsPerFloor' ? Number(value) : Number(prev.flatsPerFloor);
-        
-        if (blocks > 0 && floorsPerBlock > 0 && flatsPerFloor > 0) {
-          newData.totalFlats = (blocks * floorsPerBlock * flatsPerFloor).toString();
-        }
-      }
-      
-      return newData;
-    });
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
     
     // Clear error when user starts typing
     if (formErrors[name]) {
@@ -191,11 +217,16 @@ export default function AddSocietyPage() {
     const errors: {[key: string]: string} = {};
     
     // Validate all fields as required
-    const requiredFields = ['name', 'adminEmail', 'mobile', 'address', 'city', 'state', 'pincode', 'blocks', 'floorsPerBlock', 'flatsPerFloor', 'logo'];
+    const requiredFields = ['name', 'adminEmail', 'mobile', 'address', 'city', 'state', 'pincode', 'logo'];
     requiredFields.forEach(field => {
       const error = validateField(field, formData[field as keyof typeof formData]);
       if (error) errors[field] = error;
     });
+    
+    // Validate CSV data
+    if (!csvFile || csvData.length === 0) {
+      errors.csvFile = 'CSV file with structure data is required';
+    }
     
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -429,97 +460,103 @@ export default function AddSocietyPage() {
                   </div>
                 </div>
 
-                {/* Structure Details Section */}
+                {/* CSV Upload Section */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Structure Details</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {/* Number of Blocks */}
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Structure Details (CSV Upload)</h3>
+                  <div className="space-y-6">
+                    {/* CSV Upload */}
                     <div>
-                      <label htmlFor="blocks" className="block text-sm font-medium text-gray-700 mb-2">
-                        Number of Blocks*
+                      <label htmlFor="csvFile" className="block text-sm font-medium text-gray-700 mb-2">
+                        Upload CSV File*
                       </label>
-                      <input
-                        type="number"
-                        id="blocks"
-                        name="blocks"
-                        required
-                        value={formData.blocks}
-                        onChange={handleInputChange}
-                        onBlur={handleBlur}
-                        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          formErrors.blocks ? 'border-red-300' : ''
-                        }`}
-                        placeholder="e.g., 3"
-                      />
-                      {formErrors.blocks && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.blocks}</p>
+                      <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-gray-400 transition-colors">
+                        <div className="space-y-1 text-center">
+                          <svg
+                            className="mx-auto h-12 w-12 text-gray-400"
+                            stroke="currentColor"
+                            fill="none"
+                            viewBox="0 0 48 48"
+                            aria-hidden="true"
+                          >
+                            <path
+                              d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                              strokeWidth={2}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          <div className="flex text-sm text-gray-600">
+                            <label
+                              htmlFor="csvFile"
+                              className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                            >
+                              <span>Upload a CSV file</span>
+                              <input
+                                id="csvFile"
+                                name="csvFile"
+                                type="file"
+                                accept=".csv"
+                                onChange={handleCSVUpload}
+                                className="sr-only"
+                              />
+                            </label>
+                            <p className="pl-1">or drag and drop</p>
+                          </div>
+                          <p className="text-xs text-gray-500">CSV files only</p>
+                        </div>
+                      </div>
+                      {csvFile && (
+                        <p className="mt-2 text-sm text-green-600">
+                          ✓ {csvFile.name} uploaded successfully
+                        </p>
                       )}
                     </div>
 
-                    {/* Floors per Block */}
-                    <div>
-                      <label htmlFor="floorsPerBlock" className="block text-sm font-medium text-gray-700 mb-2">
-                        Floors per Block*
-                      </label>
-                      <input
-                        type="number"
-                        id="floorsPerBlock"
-                        name="floorsPerBlock"
-                        required
-                        value={formData.floorsPerBlock}
-                        onChange={handleInputChange}
-                        onBlur={handleBlur}
-                        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          formErrors.floorsPerBlock ? 'border-red-300' : ''
-                        }`}
-                        placeholder="e.g., 10"
-                      />
-                      {formErrors.floorsPerBlock && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.floorsPerBlock}</p>
-                      )}
+                    {/* CSV Format Instructions */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+                      <h4 className="text-sm font-medium text-blue-800 mb-2">CSV Format Requirements:</h4>
+                      <div className="text-sm text-blue-700 space-y-1">
+                        <p>• Required columns: <code className="bg-blue-100 px-1 rounded">block</code>, <code className="bg-blue-100 px-1 rounded">flat</code>, <code className="bg-blue-100 px-1 rounded">floor</code></p>
+                        <p>• Example format:</p>
+                        <div className="bg-white border rounded p-2 mt-2 font-mono text-xs">
+                          block,flat,floor<br/>
+                          A,101,1<br/>
+                          A,102,1<br/>
+                          A,201,2<br/>
+                          B,101,1
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Flats per Floor */}
-                    <div>
-                      <label htmlFor="flatsPerFloor" className="block text-sm font-medium text-gray-700 mb-2">
-                        Flats per Floor*
-                      </label>
-                      <input
-                        type="number"
-                        id="flatsPerFloor"
-                        name="flatsPerFloor"
-                        required
-                        value={formData.flatsPerFloor}
-                        onChange={handleInputChange}
-                        onBlur={handleBlur}
-                        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          formErrors.flatsPerFloor ? 'border-red-300' : ''
-                        }`}
-                        placeholder="e.g., 4"
-                      />
-                      {formErrors.flatsPerFloor && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.flatsPerFloor}</p>
-                      )}
-                    </div>
-
-                    {/* Total Flats (Auto-calculated) */}
-                    <div>
-                      <label htmlFor="totalFlats" className="block text-sm font-medium text-gray-700 mb-2">
-                        Total Flats
-                      </label>
-                      <input
-                        type="number"
-                        id="totalFlats"
-                        name="totalFlats"
-                        value={formData.totalFlats}
-                        readOnly
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-600"
-                        placeholder="Auto-calculated"
-                      />
-                      <p className="mt-1 text-xs text-gray-500">
-                        Calculated: Blocks × Floors × Flats per Floor
-                      </p>
-                    </div>
+                    {/* CSV Preview */}
+                    {csvPreview.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">Preview (First 5 rows):</h4>
+                        <div className="overflow-x-auto border border-gray-200 rounded-md">
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Block</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Flat</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Floor</th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                              {csvPreview.map((row, index) => (
+                                <tr key={index}>
+                                  <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">{row.block}</td>
+                                  <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">{row.flat}</td>
+                                  <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">{row.floor}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        <p className="mt-1 text-xs text-gray-500">
+                          Total records: {csvData.length}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 

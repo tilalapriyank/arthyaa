@@ -137,7 +137,7 @@ export default function AdminLayout({
                     <path d="M10 18H14" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
                   </svg>
                 </div>
-                <span className="flex-1">Society Management</span>
+                <span className="flex-1">Societies</span>
               </Link>
             </nav>
           </div>
