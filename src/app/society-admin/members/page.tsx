@@ -84,23 +84,42 @@ export default function MembersPage() {
     if (user) {
       fetchMembers();
     }
-  }, [user]);
+  }, [user, societyId]);
 
   const fetchMembers = async () => {
     try {
-      // For society admin without society ID, we need to get their society first
-      const response = await fetch('/api/auth/me', {
-        credentials: 'include'
-      });
-      const userData = await response.json();
+      let targetSocietyId = societyId;
       
-      if (userData.success && userData.user.societyId) {
-        const membersResponse = await fetch(`/api/society-admin/members?societyId=${userData.user.societyId}`, {
+      // If no societyId in URL, get it from user's society (for SOCIETY_ADMIN)
+      if (!targetSocietyId && user?.role === 'SOCIETY_ADMIN') {
+        const userResponse = await fetch('/api/auth/me', {
+          credentials: 'include'
+        });
+        const userData = await userResponse.json();
+        
+        if (userData.success) {
+          // Get user's society ID from database
+          const societyResponse = await fetch('/api/society-admin/settings', {
+            credentials: 'include'
+          });
+          const societyData = await societyResponse.json();
+          
+          if (societyData.success && societyData.society) {
+            targetSocietyId = societyData.society.id;
+          }
+        }
+      }
+      
+      if (targetSocietyId) {
+        console.log('Fetching members for society ID:', targetSocietyId);
+        const membersResponse = await fetch(`/api/society-admin/members?societyId=${targetSocietyId}`, {
           credentials: 'include'
         });
         const membersData = await membersResponse.json();
+        console.log('Members API response:', membersData);
         
         if (membersData.success) {
+          console.log('Raw members data:', membersData.members);
           // Transform API data to match component interface
           const transformedMembers: Member[] = membersData.members.map((member: any) => ({
             id: member.id,
@@ -124,7 +143,7 @@ export default function MembersPage() {
           setMembers([]);
         }
       } else {
-        console.error('No society ID found for user');
+        console.error('No society ID available');
         setMembers([]);
       }
     } catch (error) {
@@ -149,8 +168,7 @@ export default function MembersPage() {
         member.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         member.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        member.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        member.address?.toLowerCase().includes(searchTerm.toLowerCase())
+        member.phone?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -182,8 +200,8 @@ export default function MembersPage() {
       const data = await response.json();
       
       if (data.success) {
-        setMembers(members.filter(member => member.id !== deleteDialog.member!.id));
-        setDeleteDialog({ isOpen: false, member: null, isLoading: false });
+      setMembers(members.filter(member => member.id !== deleteDialog.member!.id));
+      setDeleteDialog({ isOpen: false, member: null, isLoading: false });
       } else {
         console.error('Error deleting member:', data.message);
         alert('Failed to delete member: ' + data.message);
@@ -308,33 +326,33 @@ export default function MembersPage() {
       </div>
 
       {/* Members List */}
-      {filteredMembers.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            {members.length === 0 ? 'No members yet' : 'No members found'}
-          </h3>
-          <p className="text-gray-600 mb-8 max-w-md mx-auto">
-            {members.length === 0 
-              ? 'Get started by adding your first member. You can manage all members from this dashboard.'
-              : 'Try adjusting your search or filter criteria to find what you\'re looking for.'
-            }
-          </p>
-          <a
+          {filteredMembers.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                {members.length === 0 ? 'No members yet' : 'No members found'}
+              </h3>
+              <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                {members.length === 0 
+                  ? 'Get started by adding your first member. You can manage all members from this dashboard.'
+                  : 'Try adjusting your search or filter criteria to find what you\'re looking for.'
+                }
+              </p>
+              <a
             href={`/society-admin/members/add${societyId ? `?societyId=${societyId}` : ''}`}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            Add Your First Member
-          </a>
-        </div>
-      ) : (
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Add Your First Member
+              </a>
+            </div>
+          ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -363,18 +381,18 @@ export default function MembersPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredMembers.map((member) => (
+                {filteredMembers.map((member) => (
                 <tr key={member.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mr-3">
                         <span className="text-sm font-semibold text-blue-600">
-                          {member.firstName[0]}{member.lastName[0]}
-                        </span>
-                      </div>
-                      <div>
+                              {member.firstName[0]}{member.lastName[0]}
+                            </span>
+                          </div>
+                          <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {member.firstName} {member.lastName}
+                              {member.firstName} {member.lastName}
                         </div>
                         <div className="text-sm text-gray-500">{member.email}</div>
                       </div>
@@ -406,25 +424,25 @@ export default function MembersPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      member.isActive ? 'text-green-600 bg-green-100' : 'text-gray-600 bg-gray-100'
-                    }`}>
-                      {member.isActive ? 'Active' : 'Inactive'}
-                    </span>
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          member.isActive ? 'text-green-600 bg-green-100' : 'text-gray-600 bg-gray-100'
+                        }`}>
+                          {member.isActive ? 'Active' : 'Inactive'}
+                        </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(member.joinedAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => handleDeleteMember(member)}
+                            <button
+                              onClick={() => handleDeleteMember(member)}
                       className="text-red-600 hover:text-red-900 transition-colors p-2 hover:bg-red-50 rounded-lg"
-                      title="Delete member"
-                    >
+                              title="Delete member"
+                            >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
                   </td>
                 </tr>
               ))}
