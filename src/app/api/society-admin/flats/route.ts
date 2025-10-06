@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { verifyToken } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
@@ -12,20 +13,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Block ID is required' }, { status: 400 });
     }
 
-    // Get user from session using cookies
-    const cookieHeader = request.headers.get('cookie');
-    if (!cookieHeader) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    // Verify authentication using cookies
+    const token = request.cookies.get('auth-token')?.value;
+    if (!token) {
+      return NextResponse.json({ success: false, message: 'No authentication token' }, { status: 401 });
     }
 
-    const userResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/auth/me`, {
-      headers: {
-        'Cookie': cookieHeader
-      }
-    });
-
-    const userData = await userResponse.json();
-    if (!userData.success || (userData.user.role !== 'SOCIETY_ADMIN' && userData.user.role !== 'ADMIN')) {
+    const decoded = verifyToken(token);
+    if (!decoded || (decoded.role !== 'SOCIETY_ADMIN' && decoded.role !== 'ADMIN')) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
