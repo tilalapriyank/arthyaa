@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import ImageUpload, { UploadedFile } from '@/components/ImageUpload';
 
 export default function AddSocietyPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -19,6 +20,7 @@ export default function AddSocietyPage() {
     adminEmail: '',
     logo: ''
   });
+  const [uploadedLogo, setUploadedLogo] = useState<UploadedFile | null>(null);
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [csvData, setCsvData] = useState<Record<string, string>[]>([]);
   const [csvPreview, setCsvPreview] = useState<Record<string, string>[]>([]);
@@ -27,6 +29,31 @@ export default function AddSocietyPage() {
   const [editData, setEditData] = useState<Record<string, string>>({});
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const router = useRouter();
+
+  // Handle logo upload
+  const handleLogoUpload = (file: UploadedFile) => {
+    setUploadedLogo(file);
+    setFormData(prev => ({
+      ...prev,
+      logo: file.secure_url
+    }));
+    // Clear any logo-related errors
+    if (formErrors.logo) {
+      setFormErrors(prev => ({
+        ...prev,
+        logo: ''
+      }));
+    }
+  };
+
+  // Handle logo removal
+  const handleLogoRemove = () => {
+    setUploadedLogo(null);
+    setFormData(prev => ({
+      ...prev,
+      logo: ''
+    }));
+  };
 
   const parseCSV = (csvText: string) => {
     const lines = csvText.split('\n').filter(line => line.trim());
@@ -147,10 +174,10 @@ export default function AddSocietyPage() {
       formDataToSend.append('adminEmail', formData.adminEmail);
       formDataToSend.append('csvData', JSON.stringify(csvData));
       
-      // Add logo file if selected
-      const logoInput = document.getElementById('logo') as HTMLInputElement;
-      if (logoInput && logoInput.files && logoInput.files[0]) {
-        formDataToSend.append('logo', logoInput.files[0]);
+      // Add logo URL if uploaded
+      if (uploadedLogo) {
+        formDataToSend.append('logo', uploadedLogo.secure_url);
+        formDataToSend.append('logoPublicId', uploadedLogo.public_id);
       }
       
       const response = await fetch('/api/admin/societies', {
@@ -209,7 +236,7 @@ export default function AddSocietyPage() {
         if (!/^\d{6}$/.test(value)) return 'Pincode must be 6 digits';
         return '';
       case 'logo':
-        if (!value.trim()) return 'Society logo is required';
+        if (!uploadedLogo) return 'Society logo is required';
         return '';
       default:
         return '';
@@ -217,17 +244,7 @@ export default function AddSocietyPage() {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, files } = e.target as HTMLInputElement;
-    
-    // Handle file upload for logo
-    if (name === 'logo' && files && files[0]) {
-      const file = files[0];
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setLogoPreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+    const { name, value } = e.target;
     
     setFormData(prev => ({
       ...prev,
@@ -256,11 +273,16 @@ export default function AddSocietyPage() {
     const errors: {[key: string]: string} = {};
     
     // Validate all fields as required
-    const requiredFields = ['name', 'adminEmail', 'mobile', 'address', 'city', 'state', 'pincode', 'logo'];
+    const requiredFields = ['name', 'adminEmail', 'mobile', 'address', 'city', 'state', 'pincode'];
     requiredFields.forEach(field => {
       const error = validateField(field, formData[field as keyof typeof formData]);
       if (error) errors[field] = error;
     });
+    
+    // Validate logo separately
+    if (!uploadedLogo) {
+      errors.logo = 'Society logo is required';
+    }
     
     // Validate CSV data
     if (!csvFile || csvData.length === 0) {
@@ -365,39 +387,24 @@ export default function AddSocietyPage() {
 
                     {/* Society Logo */}
                     <div>
-                      <label htmlFor="logo" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Society Logo*
                       </label>
-                      <div className="space-y-3">
-                        <input
-                          type="file"
-                          id="logo"
-                          name="logo"
-                          required
-                          accept="image/*"
-                          onChange={handleInputChange}
-                          className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                            formErrors.logo ? 'border-red-300' : ''
-                          }`}
-                        />
-                        {formErrors.logo && (
-                          <p className="mt-1 text-sm text-red-600">{formErrors.logo}</p>
-                        )}
-                        {logoPreview && (
-                          <div className="mt-2">
-                            <p className="text-sm text-gray-600 mb-2">Preview:</p>
-                            <div className="border border-gray-200 rounded-md p-2 bg-gray-50">
-                              <Image
-                                src={logoPreview}
-                                alt="Logo preview"
-                                width={200}
-                                height={80}
-                                className="max-w-full h-20 object-contain mx-auto"
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                      <ImageUpload
+                        onImageUpload={handleLogoUpload}
+                        onImageRemove={handleLogoRemove}
+                        folder="arthyaa/societies"
+                        width={300}
+                        height={120}
+                        quality="auto"
+                        format="webp"
+                        className="min-h-[150px]"
+                        disabled={isLoading}
+                        preview={true}
+                      />
+                      {formErrors.logo && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.logo}</p>
+                      )}
                     </div>
                   </div>
                 </div>

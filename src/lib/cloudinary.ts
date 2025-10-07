@@ -1,0 +1,191 @@
+const cloudinary = require('cloudinary').v2;
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+export interface CloudinaryUploadResult {
+  success: boolean;
+  public_id?: string;
+  secure_url?: string;
+  error?: string;
+}
+
+export interface CloudinaryUploadOptions {
+  folder?: string;
+  resource_type?: 'image' | 'video' | 'raw' | 'auto';
+  transformation?: any;
+  public_id?: string;
+}
+
+/**
+ * Upload file to Cloudinary
+ * @param file - File to upload
+ * @param options - Upload options
+ * @returns Promise<CloudinaryUploadResult>
+ */
+export async function uploadToCloudinary(
+  file: File,
+  options: CloudinaryUploadOptions = {}
+): Promise<CloudinaryUploadResult> {
+  try {
+    // Convert file to buffer
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    // Convert buffer to base64 string
+    const base64String = buffer.toString('base64');
+    const dataURI = `data:${file.type};base64,${base64String}`;
+
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: options.folder || 'arthyaa',
+      resource_type: options.resource_type || 'auto',
+      transformation: options.transformation,
+      public_id: options.public_id,
+    });
+
+    return {
+      success: true,
+      public_id: result.public_id,
+      secure_url: result.secure_url,
+    };
+  } catch (error) {
+    console.error('Cloudinary upload error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Upload failed',
+    };
+  }
+}
+
+/**
+ * Delete file from Cloudinary
+ * @param publicId - Public ID of the file to delete
+ * @param resourceType - Type of resource (image, video, raw)
+ * @returns Promise<boolean>
+ */
+export async function deleteFromCloudinary(
+  publicId: string,
+  resourceType: 'image' | 'video' | 'raw' = 'image'
+): Promise<boolean> {
+  try {
+    await cloudinary.uploader.destroy(publicId, {
+      resource_type: resourceType,
+    });
+    return true;
+  } catch (error) {
+    console.error('Cloudinary delete error:', error);
+    return false;
+  }
+}
+
+/**
+ * Get optimized image URL with transformations
+ * @param publicId - Public ID of the image
+ * @param transformations - Cloudinary transformations
+ * @returns Optimized image URL
+ */
+export function getOptimizedImageUrl(
+  publicId: string,
+  transformations: any = {}
+): string {
+  return cloudinary.url(publicId, {
+    ...transformations,
+    secure: true,
+  });
+}
+
+/**
+ * Validate file type for different categories
+ * @param file - File to validate
+ * @param category - Category of file (image, document, pdf)
+ * @returns Validation result
+ */
+export function validateFileType(
+  file: File,
+  category: 'image' | 'document' | 'pdf' | 'all'
+): { isValid: boolean; error?: string } {
+  const allowedTypes = {
+    image: [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'image/svg+xml',
+    ],
+    document: [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain',
+      'text/csv',
+    ],
+    pdf: ['application/pdf'],
+    all: [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'image/svg+xml',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain',
+      'text/csv',
+    ],
+  };
+
+  const types = allowedTypes[category];
+  
+  if (!types.includes(file.type)) {
+    return {
+      isValid: false,
+      error: `Invalid file type. Allowed types for ${category}: ${types.join(', ')}`,
+    };
+  }
+
+  return { isValid: true };
+}
+
+/**
+ * Get file size in MB
+ * @param file - File to check
+ * @returns File size in MB
+ */
+export function getFileSizeInMB(file: File): number {
+  return file.size / (1024 * 1024);
+}
+
+/**
+ * Validate file size
+ * @param file - File to validate
+ * @param maxSizeInMB - Maximum size in MB
+ * @returns Validation result
+ */
+export function validateFileSize(
+  file: File,
+  maxSizeInMB: number = 10
+): { isValid: boolean; error?: string } {
+  const fileSizeInMB = getFileSizeInMB(file);
+  
+  if (fileSizeInMB > maxSizeInMB) {
+    return {
+      isValid: false,
+      error: `File size too large. Maximum size: ${maxSizeInMB}MB`,
+    };
+  }
+
+  return { isValid: true };
+}
+
+export default cloudinary;

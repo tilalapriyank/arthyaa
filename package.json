@@ -17,6 +17,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^6.16.2",
     "bcryptjs": "^3.0.2",
+    "cloudinary": "^2.7.0",
     "dotenv": "^17.2.2",
     "firebase": "^12.3.0",
     "jotai": "^2.15.0",
