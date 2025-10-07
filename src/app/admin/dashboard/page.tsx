@@ -46,6 +46,16 @@ export default function AdminDashboard() {
   });
   const router = useRouter();
 
+  // Helper function to validate URLs
+  const isValidUrl = (url: string): boolean => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me');
@@ -257,21 +267,25 @@ export default function AdminDashboard() {
               societies.slice(0, 5).map((society) => (
                 <div key={society.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                   <div className="flex items-center space-x-4">
-                    {society.logo ? (
+                    {society.logo && isValidUrl(society.logo) ? (
                       <Image
                         src={society.logo}
                         alt={`${society.name} logo`}
                         width={48}
                         height={48}
                         className="w-12 h-12 rounded-lg object-cover border border-gray-200"
+                        onError={(e) => {
+                          console.error('Failed to load society logo:', society.logo);
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
                       />
-                    ) : (
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center">
-                        <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                      </div>
-                    )}
+                    ) : null}
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                    </div>
                             <div className="flex-1">
                       <h4 className="font-semibold text-gray-900">{society.name}</h4>
                       <div className="flex items-center space-x-4 text-sm text-gray-600">

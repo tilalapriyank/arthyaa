@@ -32,10 +32,11 @@ export default function AddSocietyPage() {
 
   // Handle logo upload
   const handleLogoUpload = (file: UploadedFile) => {
+    console.log('Logo uploaded:', file);
     setUploadedLogo(file);
     setFormData(prev => ({
       ...prev,
-      logo: file.secure_url
+      logo: file.url // Use 'url' instead of 'secure_url'
     }));
     // Clear any logo-related errors
     if (formErrors.logo) {
@@ -175,9 +176,17 @@ export default function AddSocietyPage() {
       formDataToSend.append('csvData', JSON.stringify(csvData));
       
       // Add logo URL if uploaded
-      if (uploadedLogo) {
-        formDataToSend.append('logo', uploadedLogo.secure_url);
+      if (uploadedLogo && uploadedLogo.url) {
+        formDataToSend.append('logo', uploadedLogo.url);
         formDataToSend.append('logoPublicId', uploadedLogo.public_id);
+        console.log('Sending logo data:', {
+          url: uploadedLogo.url,
+          public_id: uploadedLogo.public_id
+        });
+      } else {
+        console.error('No valid logo data found:', uploadedLogo);
+        setError('Please upload a valid logo before creating the society.');
+        return;
       }
       
       const response = await fetch('/api/admin/societies', {

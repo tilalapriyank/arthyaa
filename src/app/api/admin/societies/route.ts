@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { verifyToken } from '@/lib/auth';
 import { sendWelcomeEmail } from '@/lib/email';
+import { handleFileUpload, validateFile } from '@/lib/upload';
 import crypto from 'crypto';
 
 const prisma = new PrismaClient();
@@ -70,8 +71,7 @@ export async function POST(request: NextRequest) {
     const mobile = formData.get('mobile') as string;
     const adminEmail = formData.get('adminEmail') as string;
     const csvDataString = formData.get('csvData') as string;
-    const logoUrl = formData.get('logo') as string;
-    const logoPublicId = formData.get('logoPublicId') as string;
+    const logoFile = formData.get('logo') as File;
 
     if (!name || name.trim() === '') {
       return NextResponse.json(
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!logoUrl || logoUrl.trim() === '') {
+    if (!logoFile || logoFile.size === 0) {
       return NextResponse.json(
         { success: false, message: 'Society logo is required' },
         { status: 400 }
@@ -166,8 +166,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use Cloudinary logo URL directly
-    const logoPath = logoUrl;
+    // Handle logo file upload
+    let logoPath = null;
+    if (logoFile && logoFile.size > 0) {
+      // Validate file
+      const validation = validateFile(logoFile, ['image/jpeg', 'image/png', 'image/gif', 'image/webp'], 5);
+      if (!validation.isValid) {
+        return NextResponse.json(
+          { success: false, message: validation.error },
+          { status: 400 }
+        );
+      }
+      
+      // Upload file
+      const uploadResult = await handleFileUpload(logoFile, 'societies');
+      if (!uploadResult.success) {
+        return NextResponse.json(
+          { success: false, message: `File upload failed: ${uploadResult.error}` },
+          { status: 500 }
+        );
+      }
+      
+      logoPath = uploadResult.filePath;
+    }
 
     // Generate a setup token for the society admin
     const setupToken = crypto.randomBytes(32).toString('hex');
