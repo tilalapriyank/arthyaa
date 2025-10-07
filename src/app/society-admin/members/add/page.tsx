@@ -32,6 +32,13 @@ export default function AddMemberPage() {
       if (data.success && (data.user.role === 'SOCIETY_ADMIN' || data.user.role === 'ADMIN')) {
         if (data.user.societyId) {
           setSocietyId(data.user.societyId);
+          // Redirect to the correct route with society ID
+          router.push(`/society-admin/${data.user.societyId}/members/add`);
+          return;
+        } else if (data.user.role === 'SOCIETY_ADMIN') {
+          // If SOCIETY_ADMIN but no societyId, redirect to dashboard
+          router.push('/society-admin/dashboard');
+          return;
         }
       } else {
         router.push('/admin/login');
@@ -174,15 +181,23 @@ export default function AddMemberPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <div className="text-orange-500 text-6xl mb-4">⚠️</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">No Society Found</h1>
           <p className="text-gray-600 mb-4">You are not associated with any society.</p>
-          <button
-            onClick={() => router.push('/society-admin/dashboard')}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            ← Back to Dashboard
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={() => router.push('/society-admin/dashboard')}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mr-2"
+            >
+              ← Back to Dashboard
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       </div>
     );

@@ -16,6 +16,7 @@ interface User {
 
 export default function SocietyAdminDashboard() {
   const [user, setUser] = useState<User | null>(null);
+  const [societyId, setSocietyId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -27,6 +28,9 @@ export default function SocietyAdminDashboard() {
 
       if (data.success && (data.user.role === 'SOCIETY_ADMIN' || data.user.role === 'ADMIN')) {
         setUser(data.user);
+        if (data.user.societyId) {
+          setSocietyId(data.user.societyId);
+        }
       } else {
         router.push('/admin/login');
       }
@@ -138,7 +142,7 @@ export default function SocietyAdminDashboard() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link
-              href="/society-admin/members"
+              href={societyId ? `/society-admin/${societyId}/members` : '/society-admin/members'}
               className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4">

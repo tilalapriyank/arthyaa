@@ -241,7 +241,7 @@ export default function MembersPage() {
           <p className="text-gray-600 mt-1">Manage society members and track their information</p>
         </div>
         <a
-          href={`/society-admin/members/add${societyId ? `?societyId=${societyId}` : ''}`}
+          href={societyId ? `/society-admin/${societyId}/members/add` : '/society-admin/members/add'}
           className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-violet-600 text-white hover:bg-violet-700 h-10 px-4 py-2"
         >
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -326,7 +326,7 @@ export default function MembersPage() {
                 }
               </p>
               <a
-            href={`/society-admin/members/add${societyId ? `?societyId=${societyId}` : ''}`}
+            href={societyId ? `/society-admin/${societyId}/members/add` : '/society-admin/members/add'}
                 className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

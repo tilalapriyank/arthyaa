@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,6 +24,37 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // For SOCIETY_ADMIN users, fetch their society information
+    if (user.role === 'SOCIETY_ADMIN') {
+      const userWithSociety = await prisma.user.findUnique({
+        where: { id: user.id },
+        include: {
+          society: {
+            select: {
+              id: true,
+              name: true
+            }
+          }
+        }
+      });
+
+      if (userWithSociety?.society) {
+        return NextResponse.json({ 
+          success: true, 
+          user: {
+            ...user,
+            societyId: userWithSociety.society.id,
+            societyName: userWithSociety.society.name
+          }
+        });
+      } else {
+        return NextResponse.json(
+          { success: false, message: 'Society not found for user' },
+          { status: 404 }
+        );
+      }
+    }
+
     return NextResponse.json({ success: true, user });
   } catch (error) {
     console.error('Auth check error:', error);
@@ -28,5 +62,7 @@ export async function GET(request: NextRequest) {
       { success: false, message: 'Internal server error' },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }
