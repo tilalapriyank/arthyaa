@@ -281,32 +281,28 @@ export default function SocietiesPage() {
                     {/* Society Logo */}
                     <div className="flex-shrink-0">
                       {society.logo && isValidUrl(society.logo) ? (
-                        <div className="relative">
-                          <Image
-                            src={society.logo}
-                            alt={`${society.name} logo`}
-                            width={48}
-                            height={48}
-                            className="w-12 h-12 rounded-lg object-cover border border-gray-200"
-                            onError={(e) => {
-                              console.error('Failed to load society logo:', society.logo);
-                              e.currentTarget.style.display = 'none';
-                              e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                            }}
-                          />
-                          <div className="hidden w-12 h-12 rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center border border-gray-200">
-                            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center border border-gray-200">
-                          <span className="text-lg font-bold text-blue-600">
-                            {society.name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                      )}
+                        <Image
+                          src={society.logo}
+                          alt={`${society.name} logo`}
+                          width={48}
+                          height={48}
+                          className="w-12 h-12 rounded-lg object-cover border border-gray-200"
+                          onError={(e) => {
+                            console.error('Failed to load society logo:', society.logo);
+                            // Hide the image and show fallback
+                            e.currentTarget.style.display = 'none';
+                            const fallback = e.currentTarget.parentElement?.querySelector('.fallback-icon');
+                            if (fallback) {
+                              fallback.classList.remove('hidden');
+                            }
+                          }}
+                        />
+                      ) : null}
+                      <div className={`w-12 h-12 rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center border border-gray-200 fallback-icon ${society.logo && isValidUrl(society.logo) ? 'hidden' : ''}`}>
+                        <span className="text-sm font-bold text-blue-600">
+                          {society.name.substring(0, 2).toUpperCase()}
+                        </span>
+                      </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="text-lg font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
@@ -417,21 +413,28 @@ export default function SocietiesPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
-                            {society.logo ? (
+                            {society.logo && isValidUrl(society.logo) ? (
                               <Image
                                 src={society.logo}
                                 alt={`${society.name} logo`}
                                 width={40}
                                 height={40}
                                 className="h-10 w-10 rounded-lg object-cover border border-gray-200"
+                                onError={(e) => {
+                                  console.error('Failed to load society logo:', society.logo);
+                                  e.currentTarget.style.display = 'none';
+                                  const fallback = e.currentTarget.parentElement?.querySelector('.fallback-icon');
+                                  if (fallback) {
+                                    fallback.classList.remove('hidden');
+                                  }
+                                }}
                               />
-                            ) : (
-                              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center border border-gray-200">
-                                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                </svg>
-                              </div>
-                            )}
+                            ) : null}
+                            <div className={`h-10 w-10 rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center border border-gray-200 fallback-icon ${society.logo && isValidUrl(society.logo) ? 'hidden' : ''}`}>
+                              <span className="text-xs font-bold text-blue-600">
+                                {society.name.substring(0, 2).toUpperCase()}
+                              </span>
+                            </div>
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-semibold text-gray-900">{society.name}</div>
