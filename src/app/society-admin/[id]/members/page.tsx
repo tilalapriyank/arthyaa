@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import DocumentStatusModal from '@/components/DocumentStatusModal';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import { TableSkeleton } from '@/components/SkeletonLoader';
 
 interface User {
   id: string;
@@ -44,6 +46,7 @@ export default function MembersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [societyId, setSocietyId] = useState<string | null>(null);
+  const [isLoadingMembers, setIsLoadingMembers] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{
     isOpen: boolean;
     member: Member | null;
@@ -84,6 +87,7 @@ export default function MembersPage() {
 
   const fetchMembers = useCallback(async () => {
     try {
+      setIsLoadingMembers(true);
       if (!societyId) return;
       
       const response = await fetch(`/api/society-admin/members?societyId=${societyId}`, {
@@ -121,6 +125,8 @@ export default function MembersPage() {
     } catch (error) {
       console.error('Error fetching members:', error);
       setMembers([]);
+    } finally {
+      setIsLoadingMembers(false);
     }
   }, [societyId]);
 
@@ -241,14 +247,7 @@ export default function MembersPage() {
 
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen text="Loading members..." />;
   }
 
   return (
@@ -329,7 +328,9 @@ export default function MembersPage() {
       </div>
 
       {/* Members List */}
-      {filteredMembers.length === 0 ? (
+      {isLoadingMembers ? (
+        <TableSkeleton rows={5} columns={7} />
+      ) : filteredMembers.length === 0 ? (
         <div className="text-center py-16">
           <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import { CardSkeleton } from '@/components/SkeletonLoader';
 
 interface User {
   id: string;
@@ -38,6 +40,7 @@ export default function SocietiesPage() {
   const [filteredSocieties, setFilteredSocieties] = useState<Society[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [isLoadingSocieties, setIsLoadingSocieties] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{
     isOpen: boolean;
     society: Society | null;
@@ -88,6 +91,7 @@ export default function SocietiesPage() {
 
   const fetchSocieties = async () => {
     try {
+      setIsLoadingSocieties(true);
       const response = await fetch('/api/admin/societies', {
         credentials: 'include'
       });
@@ -97,6 +101,8 @@ export default function SocietiesPage() {
       }
     } catch (error) {
       console.error('Error fetching societies:', error);
+    } finally {
+      setIsLoadingSocieties(false);
     }
   };
 
@@ -162,14 +168,7 @@ export default function SocietiesPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen text="Loading societies..." />;
   }
 
 
@@ -244,7 +243,13 @@ export default function SocietiesPage() {
       </div>
 
       {/* Societies List */}
-      {filteredSocieties.length === 0 ? (
+      {isLoadingSocieties ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <CardSkeleton key={index} />
+          ))}
+        </div>
+      ) : filteredSocieties.length === 0 ? (
         <div className="text-center py-16">
           <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

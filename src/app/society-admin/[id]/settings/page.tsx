@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface User {
   id: string;
@@ -170,11 +171,7 @@ export default function SocietySettings() {
   };
 
   if (isLoading || loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen text="Loading settings..." />;
   }
 
   if (!user || (user.role !== 'SOCIETY_ADMIN' && user.role !== 'ADMIN')) {

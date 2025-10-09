@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import ImageUpload, { UploadedFile } from '@/components/ImageUpload';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function AddSocietyPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -651,7 +652,12 @@ export default function AddSocietyPage() {
                     disabled={isLoading}
                     className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
                   >
-                    {isLoading ? 'Creating Society...' : 'Save Society'}
+                    {isLoading ? (
+                      <>
+                        <LoadingSpinner size="sm" className="mr-2" />
+                        Creating Society...
+                      </>
+                    ) : 'Save Society'}
                   </button>
                 </div>
               </form>

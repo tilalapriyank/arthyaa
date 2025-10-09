@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import { TableSkeleton } from '@/components/SkeletonLoader';
 
 interface User {
   id: string;
@@ -180,11 +182,7 @@ export default function BlocksPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen text="Loading blocks..." />;
   }
 
   if (!user || (user.role !== 'SOCIETY_ADMIN' && user.role !== 'ADMIN')) {
@@ -248,11 +246,20 @@ export default function BlocksPage() {
               </div>
               <div className="p-6">
                 {loadingBlocks ? (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
-                      <p className="text-gray-600 font-medium">Loading blocks...</p>
-                    </div>
+                  <div className="space-y-3">
+                    {Array.from({ length: 3 }).map((_, index) => (
+                      <div key={index} className="animate-pulse">
+                        <div className="p-4 bg-gray-50 rounded-xl">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-3 h-3 bg-gray-200 rounded-full"></div>
+                            <div className="flex-1">
+                              <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+                              <div className="h-3 bg-gray-200 rounded w-16"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : blocks.length === 0 ? (
                   <div className="text-center py-12">
@@ -349,11 +356,25 @@ export default function BlocksPage() {
                     </p>
                   </div>
                 ) : loadingFlats ? (
-                  <div className="flex items-center justify-center py-16">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
-                      <p className="text-gray-600 font-medium">Loading flats...</p>
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {Array.from({ length: 6 }).map((_, index) => (
+                      <div key={index} className="animate-pulse">
+                        <div className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-6">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
+                              <div>
+                                <div className="h-5 bg-gray-200 rounded w-20 mb-2"></div>
+                                <div className="h-4 bg-gray-200 rounded w-16"></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="h-4 bg-gray-200 rounded w-24"></div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : flats.length === 0 ? (
                   <div className="text-center py-16">

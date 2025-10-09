@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { sendOTP, verifyOTP, initializeRecaptcha, clearRecaptcha } from '@/lib/firebase';
 import type { ConfirmationResult } from 'firebase/auth';
 import TestimonialSlider, { memberTestimonials } from '@/components/TestimonialSlider';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function MemberLoginPage() {
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
@@ -273,7 +274,12 @@ export default function MemberLoginPage() {
                       disabled={isLoading}
                       className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 w-full"
                     >
-                      {isLoading ? 'Sending OTP...' : 'Send OTP'}
+                      {isLoading ? (
+                        <>
+                          <LoadingSpinner size="sm" className="mr-2" />
+                          Sending OTP...
+                        </>
+                      ) : 'Send OTP'}
                     </button>
 
                     {/* reCAPTCHA container */}
@@ -366,7 +372,12 @@ export default function MemberLoginPage() {
                         disabled={isLoading}
                         className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 w-full"
                       >
-                        {isLoading ? 'Verifying...' : 'Verify & Login'}
+                        {isLoading ? (
+                          <>
+                            <LoadingSpinner size="sm" className="mr-2" />
+                            Verifying...
+                          </>
+                        ) : 'Verify & Login'}
                       </button>
 
                       <button
