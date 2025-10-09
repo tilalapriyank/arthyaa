@@ -16,7 +16,9 @@ export default function AddMemberPage() {
     flatId: '',
     blockId: '',
     memberType: 'OWNER' as 'OWNER' | 'TENANT',
-    isSecretary: false
+    isSecretary: false,
+    rentAgreement: null as File | null,
+    idProof: null as File | null
   });
   const [blocks, setBlocks] = useState<Array<{id: string, name: string}>>([]);
   const [flats, setFlats] = useState<Array<{id: string, name: string, floorNumber: number}>>([]);
@@ -136,18 +138,46 @@ export default function AddMemberPage() {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, files } = e.target;
+    if (files && files[0]) {
+      setFormData(prev => ({
+        ...prev,
+        [name]: files[0]
+      }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
+      // Create FormData for file uploads
+      const submitData = new FormData();
+      
+      // Add basic form data
+      submitData.append('firstName', formData.firstName);
+      submitData.append('lastName', formData.lastName);
+      submitData.append('email', formData.email);
+      submitData.append('phone', formData.phone);
+      submitData.append('flatId', formData.flatId);
+      submitData.append('blockId', formData.blockId);
+      submitData.append('memberType', formData.memberType);
+      submitData.append('isSecretary', formData.isSecretary.toString());
+      
+      // Add files if they exist (for tenants)
+      if (formData.rentAgreement) {
+        submitData.append('rentAgreement', formData.rentAgreement);
+      }
+      if (formData.idProof) {
+        submitData.append('idProof', formData.idProof);
+      }
+
       const response = await fetch(`/api/society-admin/members?societyId=${societyId}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         credentials: 'include',
-        body: JSON.stringify(formData)
+        body: submitData
       });
 
       const data = await response.json();
@@ -331,6 +361,64 @@ export default function AddMemberPage() {
                 </div>
               </div>
                 </div>
+
+            {/* Document Upload for Tenants */}
+            {formData.memberType === 'TENANT' && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Required Documents</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Rent Agreement *
+                    </label>
+                    <input
+                      type="file"
+                      name="rentAgreement"
+                      onChange={handleFileChange}
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Upload rent agreement document (PDF, DOC, DOCX, JPG, PNG)
+                    </p>
+                  </div>
+                   <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                       Policy Verification Document
+                       <span className="text-orange-600 text-sm ml-1">(Optional - 1 month deadline)</span>
+                     </label>
+                     <input
+                       type="file"
+                       name="idProof"
+                       onChange={handleFileChange}
+                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                       className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                     />
+                     <p className="text-xs text-gray-500 mt-1">
+                       Upload policy verification document (PDF, DOC, DOCX, JPG, PNG)
+                     </p>
+                   </div>
+                </div>
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                  <div className="flex items-start">
+                    <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                     <div>
+                       <h4 className="text-sm font-medium text-blue-800">Document Requirements for Tenants</h4>
+                       <ul className="text-xs text-blue-700 mt-1 space-y-1">
+                         <li>• <strong>Rent Agreement:</strong> Required - Must be valid and signed by both parties</li>
+                         <li>• <strong>Policy Verification:</strong> Optional - Can be uploaded within 1 month of registration</li>
+                         <li>• <strong>File Size:</strong> Maximum 10MB per document</li>
+                         <li>• <strong>Formats:</strong> PDF, DOC, DOCX, JPG, PNG</li>
+                         <li>• <strong>Note:</strong> Policy verification document deadline is 1 month from registration date</li>
+                       </ul>
+                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Additional Settings */}
             <div>

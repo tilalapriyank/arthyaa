@@ -188,4 +188,33 @@ export function validateFileSize(
   return { isValid: true };
 }
 
+/**
+ * Validate file type and size
+ * @param file - File to validate
+ * @param allowedTypes - Array of allowed MIME types
+ * @param maxSizeInMB - Maximum file size in MB
+ * @returns Validation result
+ */
+export function validateFile(
+  file: File,
+  allowedTypes: string[],
+  maxSizeInMB: number = 10
+): { isValid: boolean; error?: string } {
+  // Check file type
+  if (!allowedTypes.includes(file.type)) {
+    return {
+      isValid: false,
+      error: `File type not allowed. Allowed types: ${allowedTypes.join(', ')}`,
+    };
+  }
+
+  // Check file size
+  const sizeValidation = validateFileSize(file, maxSizeInMB);
+  if (!sizeValidation.isValid) {
+    return sizeValidation;
+  }
+
+  return { isValid: true };
+}
+
 export default cloudinary;

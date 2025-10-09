@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import DocumentStatusModal from '@/components/DocumentStatusModal';
 
 interface User {
   id: string;
@@ -29,6 +30,10 @@ interface Member {
   memberType?: 'OWNER' | 'TENANT';
   isSecretary?: boolean;
   status?: string;
+  // Document status fields for tenants
+  agreementDocumentStatus?: string;
+  policyVerificationDocumentStatus?: string;
+  policyVerificationDeadline?: string;
 }
 
 export default function MembersPage() {
@@ -47,6 +52,13 @@ export default function MembersPage() {
     isOpen: false,
     member: null,
     isLoading: false
+  });
+  const [documentStatusModal, setDocumentStatusModal] = useState<{
+    isOpen: boolean;
+    member: Member | null;
+  }>({
+    isOpen: false,
+    member: null
   });
   const router = useRouter();
   const params = useParams();
@@ -95,7 +107,11 @@ export default function MembersPage() {
           blockNumber: (member.blockNumber as string) || '',
           memberType: (member.memberType as 'OWNER' | 'TENANT') || 'OWNER',
           isSecretary: (member.isSecretary as boolean) || false,
-          status: (member.status as string) || 'ACTIVE'
+          status: (member.status as string) || 'ACTIVE',
+          // Document status fields
+          agreementDocumentStatus: member.agreementDocumentStatus,
+          policyVerificationDocumentStatus: member.policyVerificationDocumentStatus,
+          policyVerificationDeadline: member.policyVerificationDeadline
         }));
         setMembers(transformedMembers);
       } else {
@@ -151,6 +167,43 @@ export default function MembersPage() {
       member,
       isLoading: false
     });
+  };
+
+  const handleDocumentStatusUpdate = (member: Member) => {
+    setDocumentStatusModal({
+      isOpen: true,
+      member
+    });
+  };
+
+  const updateDocumentStatus = async (memberId: string, documentType: string, status: string, comments?: string) => {
+    try {
+      const response = await fetch(`/api/society-admin/members/${memberId}/documents`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          documentType,
+          status,
+          comments
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Refresh members list
+        fetchMembers();
+        alert('Document status updated successfully!');
+      } else {
+        alert('Failed to update document status: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error updating document status:', error);
+      alert('Failed to update document status');
+    }
   };
 
   const confirmDeleteMember = async () => {
@@ -372,6 +425,32 @@ export default function MembersPage() {
                         </span>
                       )}
                     </div>
+                    {/* Document Status for Tenants */}
+                    {member.memberType === 'TENANT' && (
+                      <div className="mt-2 space-y-1">
+                        <div className="flex items-center text-xs">
+                          <span className="text-gray-600 mr-2">Rent Agreement:</span>
+                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
+                            member.agreementDocumentStatus === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                            member.agreementDocumentStatus === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {member.agreementDocumentStatus || 'PENDING'}
+                          </span>
+                        </div>
+                        <div className="flex items-center text-xs">
+                          <span className="text-gray-600 mr-2">Policy Verification:</span>
+                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
+                            member.policyVerificationDocumentStatus === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                            member.policyVerificationDocumentStatus === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                            member.policyVerificationDocumentStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {member.policyVerificationDocumentStatus || 'NOT UPLOADED'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
@@ -384,15 +463,30 @@ export default function MembersPage() {
                     {new Date(member.joinedAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => handleDeleteMember(member)}
-                      className="text-red-600 hover:text-red-900 transition-colors p-2 hover:bg-red-50 rounded-lg"
-                      title="Delete member"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+                    <div className="flex items-center justify-end space-x-2">
+                      {/* Document Status Button for Tenants */}
+                      {member.memberType === 'TENANT' && (
+                        <button
+                          onClick={() => handleDocumentStatusUpdate(member)}
+                          className="text-blue-600 hover:text-blue-900 transition-colors p-2 hover:bg-blue-50 rounded-lg"
+                          title="Update document status"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </button>
+                      )}
+                      {/* Delete Button */}
+                      <button
+                        onClick={() => handleDeleteMember(member)}
+                        className="text-red-600 hover:text-red-900 transition-colors p-2 hover:bg-red-50 rounded-lg"
+                        title="Delete member"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -410,6 +504,14 @@ export default function MembersPage() {
         message="Are you sure you want to delete this member? This action cannot be undone."
         itemName={deleteDialog.member ? `${deleteDialog.member.firstName} ${deleteDialog.member.lastName}` : ''}
         isLoading={deleteDialog.isLoading}
+      />
+
+      {/* Document Status Modal */}
+      <DocumentStatusModal
+        isOpen={documentStatusModal.isOpen}
+        onClose={() => setDocumentStatusModal({ isOpen: false, member: null })}
+        member={documentStatusModal.member}
+        onStatusUpdate={updateDocumentStatus}
       />
     </div>
   );

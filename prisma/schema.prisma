@@ -74,7 +74,10 @@ model User {
   
   // Document fields for tenants
   agreementDocument String? // File path/URL
+  agreementDocumentStatus String? // PENDING, APPROVED, REJECTED
   policyVerificationDocument String? // File path/URL
+  policyVerificationDocumentStatus String? // PENDING, APPROVED, REJECTED
+  policyVerificationDeadline DateTime? // Deadline for policy verification upload
 
   // Society relationship
   societyId String?

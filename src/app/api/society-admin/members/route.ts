@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { verifyToken } from '@/lib/auth';
+import { uploadToCloudinary, validateFile } from '@/lib/cloudinary';
 
 const prisma = new PrismaClient();
 
@@ -47,7 +48,13 @@ export async function GET(request: NextRequest) {
         blockNumber: true,
         isSecretary: true,
         createdAt: true,
-        lastLoginAt: true
+        lastLoginAt: true,
+        // Document status fields for tenants
+        agreementDocument: true,
+        agreementDocumentStatus: true,
+        policyVerificationDocument: true,
+        policyVerificationDocumentStatus: true,
+        policyVerificationDeadline: true
       },
       orderBy: {
         createdAt: 'desc'
@@ -84,17 +91,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 403 });
     }
 
-    const body = await request.json();
-    const {
-      firstName,
-      lastName,
-      email,
-      phone,
-      flatId,
-      blockId,
-      memberType,
-      isSecretary
-    } = body;
+    // Handle FormData for file uploads
+    const formData = await request.formData();
+    const firstName = formData.get('firstName') as string;
+    const lastName = formData.get('lastName') as string;
+    const email = formData.get('email') as string;
+    const phone = formData.get('phone') as string;
+    const flatId = formData.get('flatId') as string;
+    const blockId = formData.get('blockId') as string;
+    const memberType = formData.get('memberType') as string;
+    const isSecretary = formData.get('isSecretary') === 'true';
+    const rentAgreement = formData.get('rentAgreement') as File | null;
+    const idProof = formData.get('idProof') as File | null;
 
     // Get society ID from query parameters
     const { searchParams } = new URL(request.url);
@@ -140,6 +148,82 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
     }
 
+    // Handle file uploads for tenants
+    let rentAgreementUrl = null;
+    let idProofUrl = null;
+
+    if (memberType === 'TENANT') {
+      // Validate and upload rent agreement
+      if (rentAgreement) {
+        const rentValidation = validateFile(rentAgreement, [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'image/jpeg',
+          'image/png'
+        ], 10);
+        
+        if (!rentValidation.isValid) {
+          return NextResponse.json({ 
+            success: false, 
+            message: `Rent Agreement: ${rentValidation.error}` 
+          }, { status: 400 });
+        }
+
+        const rentUpload = await uploadToCloudinary(rentAgreement, {
+          folder: `arthyaa/societies/${societyId}/members/documents`,
+          resource_type: 'auto'
+        });
+        
+        if (!rentUpload.success) {
+          return NextResponse.json({ 
+            success: false, 
+            message: `Failed to upload rent agreement: ${rentUpload.error}` 
+          }, { status: 500 });
+        }
+        rentAgreementUrl = rentUpload.secure_url;
+      }
+
+      // Validate and upload ID proof
+      if (idProof) {
+        const idValidation = validateFile(idProof, [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'image/jpeg',
+          'image/png'
+        ], 10);
+        
+        if (!idValidation.isValid) {
+          return NextResponse.json({ 
+            success: false, 
+            message: `ID Proof: ${idValidation.error}` 
+          }, { status: 400 });
+        }
+
+        const idUpload = await uploadToCloudinary(idProof, {
+          folder: `arthyaa/societies/${societyId}/members/documents`,
+          resource_type: 'auto'
+        });
+        
+        if (!idUpload.success) {
+          return NextResponse.json({ 
+            success: false, 
+            message: `Failed to upload ID proof: ${idUpload.error}` 
+          }, { status: 500 });
+        }
+        idProofUrl = idUpload.secure_url;
+      }
+
+      // Check if rent agreement is provided for tenants (required)
+      if (!rentAgreement) {
+        return NextResponse.json({ 
+          success: false, 
+          message: 'Rent agreement is required for tenant members' 
+        }, { status: 400 });
+      }
+    }
+
     // Create the member
     const member = await prisma.user.create({
       data: {
@@ -157,6 +241,13 @@ export async function POST(request: NextRequest) {
         isOtpVerified: false,
         isEmailVerified: false,
         password: null, // Members will use OTP login
+        // Store document URLs for tenants
+        agreementDocument: rentAgreementUrl,
+        agreementDocumentStatus: memberType === 'TENANT' && rentAgreementUrl ? 'PENDING' : null,
+        policyVerificationDocument: idProofUrl,
+        policyVerificationDocumentStatus: memberType === 'TENANT' && idProofUrl ? 'PENDING' : null,
+        // Set deadline for policy verification (1 month from now)
+        policyVerificationDeadline: memberType === 'TENANT' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null,
       }
     });
 
