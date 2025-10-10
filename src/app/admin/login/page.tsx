@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import TestimonialSlider, { adminTestimonials } from '@/components/TestimonialSlider';
-import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');

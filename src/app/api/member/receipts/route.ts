@@ -3,7 +3,6 @@ import { PrismaClient } from '@prisma/client';
 import { verifyToken } from '@/lib/auth';
 import { ocrService } from '@/lib/ocr';
 import { uploadToCloudinary } from '@/lib/cloudinary';
-import { receiptGenerator } from '@/lib/receipt-generator';
 
 const prisma = new PrismaClient();
 
@@ -120,7 +119,7 @@ export async function POST(request: NextRequest) {
           amount,
           paymentDate: new Date(paymentDate),
           purpose,
-          paymentMethod: paymentMethod as any,
+          paymentMethod: paymentMethod as 'CASH' | 'UPI' | 'BANK_TRANSFER' | 'CHEQUE',
           transactionId: transactionId || null,
           upiId: upiId || null,
           documentUrl: documentUpload.secure_url!,

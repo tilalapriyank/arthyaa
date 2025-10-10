@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import ImageUpload, { UploadedFile } from '@/components/ImageUpload';
+import ImageUpload from '@/components/ImageUpload';
+import { UploadedFile } from '@/components/FileUpload';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function AddSocietyPage() {
@@ -28,7 +28,6 @@ export default function AddSocietyPage() {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [editingRow, setEditingRow] = useState<number | null>(null);
   const [editData, setEditData] = useState<Record<string, string>>({});
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const router = useRouter();
 
   // Handle logo upload

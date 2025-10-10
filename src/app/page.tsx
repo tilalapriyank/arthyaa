@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { sendOTP, verifyOTP, initializeRecaptcha, clearRecaptcha } from '@/lib/firebase';
 import type { ConfirmationResult } from 'firebase/auth';
 import TestimonialSlider, { memberTestimonials } from '@/components/TestimonialSlider';
-import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function MemberLoginPage() {
   const [step, setStep] = useState<'phone' | 'otp'>('phone');

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
@@ -23,51 +23,20 @@ interface Receipt {
     lastName?: string;
     email?: string;
   };
-  ocrData?: any;
+  ocrData?: Record<string, unknown>;
   ocrConfidence?: number;
   ocrMatchScore?: number;
 }
 
-interface User {
-  id: string;
-  email?: string;
-  phone?: string;
-  role: string;
-  firstName?: string;
-  lastName?: string;
-  societyId?: string;
-}
 
 export default function SocietyReceiptsPage({ params }: { params: { id: string } }) {
-  const [user, setUser] = useState<User | null>(null);
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
+  const router = useRouter();
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const response = await fetch('/api/auth/me');
-      const data = await response.json();
-
-      if (data.success && (data.user.role === 'SOCIETY_ADMIN' || data.user.role === 'ADMIN')) {
-        setUser(data.user);
-        fetchReceipts();
-      } else {
-        router.push('/');
-      }
-    } catch {
-      router.push('/');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchReceipts = async () => {
+  const fetchReceipts = useCallback(async () => {
     try {
       const response = await fetch(`/api/society-admin/receipts?societyId=${params.id}`);
       const data = await response.json();
@@ -77,7 +46,29 @@ export default function SocietyReceiptsPage({ params }: { params: { id: string }
     } catch (error) {
       console.error('Error fetching receipts:', error);
     }
-  };
+  }, [params.id]);
+
+  const checkAuth = useCallback(async () => {
+    try {
+      const response = await fetch('/api/auth/me');
+      const data = await response.json();
+
+      if (data.success && (data.user.role === 'SOCIETY_ADMIN' || data.user.role === 'ADMIN')) {
+        fetchReceipts();
+      } else {
+        router.push('/');
+      }
+    } catch {
+      router.push('/');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchReceipts, router]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
 
   const handleDownloadReceipt = async (receiptId: string) => {
     try {

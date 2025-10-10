@@ -6,9 +6,10 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const token = request.cookies.get('auth-token')?.value;
     
     if (!token) {
@@ -23,7 +24,7 @@ export async function GET(
 
     const receipt = await prisma.receipt.findFirst({
       where: {
-        id: params.id,
+        id: id,
         memberId: user.id
       }
     });
@@ -47,9 +48,10 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const token = request.cookies.get('auth-token')?.value;
     
     if (!token) {
@@ -64,7 +66,7 @@ export async function DELETE(
 
     const receipt = await prisma.receipt.findFirst({
       where: {
-        id: params.id,
+        id: id,
         memberId: user.id
       }
     });
@@ -75,7 +77,7 @@ export async function DELETE(
 
     await prisma.receipt.delete({
       where: {
-        id: params.id
+        id: id
       }
     });
 

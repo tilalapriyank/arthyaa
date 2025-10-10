@@ -62,9 +62,9 @@ export default function DuesPage() {
     if (user) {
       fetchDues();
     }
-  }, [user]);
+  }, [user, fetchDues]);
 
-  const fetchDues = async () => {
+  const fetchDues = useCallback(async () => {
     try {
       // Mock data for now - replace with actual API call
       const mockDues: Due[] = [
@@ -109,7 +109,7 @@ export default function DuesPage() {
     } catch (error) {
       console.error('Error fetching dues:', error);
     }
-  };
+  }, []);
 
   const filterDues = useCallback(() => {
     let filtered = [...dues];

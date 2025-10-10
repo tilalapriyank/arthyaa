@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
@@ -18,25 +18,14 @@ interface Receipt {
   documentName: string;
   status: string;
   createdAt: string;
-  ocrData?: any;
+  ocrData?: Record<string, unknown>;
   ocrConfidence?: number;
   ocrMatchScore?: number;
   generatedReceiptUrl?: string;
 }
 
-interface User {
-  id: string;
-  email?: string;
-  phone?: string;
-  role: string;
-  firstName?: string;
-  lastName?: string;
-  isSecretary?: boolean;
-  societyId?: string;
-}
 
 export default function ReceiptDetailPage() {
-  const [user, setUser] = useState<User | null>(null);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -45,17 +34,12 @@ export default function ReceiptDetailPage() {
   const params = useParams();
   const receiptId = params.id as string;
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me');
       const data = await response.json();
 
       if (data.success && data.user.role === 'MEMBER') {
-        setUser(data.user);
         fetchReceipt();
       } else {
         router.push('/');
@@ -65,9 +49,13 @@ export default function ReceiptDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router, fetchReceipt]);
 
-  const fetchReceipt = async () => {
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  const fetchReceipt = useCallback(async () => {
     try {
       const response = await fetch(`/api/member/receipts/${receiptId}`);
       const data = await response.json();
@@ -80,7 +68,7 @@ export default function ReceiptDetailPage() {
       console.error('Error fetching receipt:', error);
       router.push('/member/receipts');
     }
-  };
+  }, [receiptId, router]);
 
   const handleDeleteReceipt = async () => {
     setIsDeleting(true);
@@ -170,7 +158,7 @@ export default function ReceiptDetailPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Receipt Not Found</h1>
-          <p className="text-gray-600 mb-4">The receipt you're looking for doesn't exist.</p>
+          <p className="text-gray-600 mb-4">The receipt you&apos;re looking for doesn&apos;t exist.</p>
           <button
             onClick={() => router.push('/member/receipts')}
             className="bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors"

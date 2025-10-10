@@ -65,7 +65,7 @@ export async function PUT(
     }
 
     // Update document status based on document type
-    const updateData: any = {};
+    const updateData: Record<string, string> = {};
     
     if (documentType === 'agreement') {
       updateData.agreementDocumentStatus = status;

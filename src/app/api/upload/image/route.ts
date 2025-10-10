@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Build transformation options
-    const transformation: any = {
+    const transformation: Record<string, string | number | undefined> = {
       quality,
     };
 

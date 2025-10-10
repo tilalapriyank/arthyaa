@@ -64,9 +64,9 @@ export default function AnnouncementsPage() {
     if (user) {
       fetchAnnouncements();
     }
-  }, [user]);
+  }, [user, fetchAnnouncements]);
 
-  const fetchAnnouncements = async () => {
+  const fetchAnnouncements = useCallback(async () => {
     try {
       // Mock data for now - replace with actual API call
       const mockAnnouncements: Announcement[] = [
@@ -99,7 +99,7 @@ export default function AnnouncementsPage() {
     } catch (error) {
       console.error('Error fetching announcements:', error);
     }
-  };
+  }, []);
 
   const handleCreateAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();

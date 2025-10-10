@@ -24,18 +24,8 @@ interface Member {
   policyVerificationDeadline?: string;
 }
 
-interface User {
-  id: string;
-  email?: string;
-  phone?: string;
-  role: string;
-  firstName?: string;
-  lastName?: string;
-  isSecretary?: boolean;
-}
 
 export default function SecretaryMembersPage() {
-  const [user, setUser] = useState<User | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMembers, setIsLoadingMembers] = useState(false);
@@ -55,15 +45,14 @@ export default function SecretaryMembersPage() {
 
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [checkAuth]);
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me');
       const data = await response.json();
 
       if (data.success && data.user.role === 'MEMBER' && data.user.isSecretary) {
-        setUser(data.user);
         fetchMembers();
       } else {
         router.push('/member/dashboard');
@@ -73,7 +62,7 @@ export default function SecretaryMembersPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
 
   const fetchMembers = async () => {
     setIsLoadingMembers(true);

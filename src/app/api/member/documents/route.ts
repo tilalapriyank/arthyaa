@@ -61,13 +61,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Update the user's document fields based on document type
-    let updateData: any = {};
+    const updateData: Record<string, string> = {};
     
     if (documentType === 'AGREEMENT') {
-      updateData.agreementDocument = uploadResult.secure_url;
+      updateData.agreementDocument = uploadResult.secure_url!;
       updateData.agreementDocumentStatus = 'PENDING';
     } else if (documentType === 'POLICY_VERIFICATION') {
-      updateData.policyVerificationDocument = uploadResult.secure_url;
+      updateData.policyVerificationDocument = uploadResult.secure_url!;
       updateData.policyVerificationDocumentStatus = 'PENDING';
     }
 

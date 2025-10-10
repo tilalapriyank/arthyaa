@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.cookies.get('auth-token')?.value;
@@ -22,10 +22,12 @@ export async function GET(
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
+
     // Get receipt details
     const receipt = await prisma.receipt.findFirst({
       where: {
-        id: params.id,
+        id: id,
         memberId: user.id,
         status: 'APPROVED'
       },

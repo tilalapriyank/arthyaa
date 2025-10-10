@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -18,15 +18,6 @@ interface Member {
   isSecretary: boolean;
 }
 
-interface User {
-  id: string;
-  email?: string;
-  phone?: string;
-  role: string;
-  firstName?: string;
-  lastName?: string;
-  isSecretary?: boolean;
-}
 
 interface FormData {
   firstName: string;
@@ -41,7 +32,6 @@ interface FormData {
 }
 
 export default function SecretaryEditMemberPage() {
-  const [user, setUser] = useState<User | null>(null);
   const [member, setMember] = useState<Member | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,29 +50,7 @@ export default function SecretaryEditMemberPage() {
   const params = useParams();
   const memberId = params.id as string;
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const response = await fetch('/api/auth/me');
-      const data = await response.json();
-
-      if (data.success && data.user.role === 'MEMBER' && data.user.isSecretary) {
-        setUser(data.user);
-        fetchMemberDetails();
-      } else {
-        router.push('/member/dashboard');
-      }
-    } catch {
-      router.push('/member/dashboard');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchMemberDetails = async () => {
+  const fetchMemberDetails = useCallback(async () => {
     try {
       const response = await fetch(`/api/member/secretary/members/${memberId}`, {
         credentials: 'include'
@@ -110,7 +78,28 @@ export default function SecretaryEditMemberPage() {
       console.error('Error fetching member details:', error);
       router.push('/member/secretary/members');
     }
-  };
+  }, [memberId, router]);
+
+  const checkAuth = useCallback(async () => {
+    try {
+      const response = await fetch('/api/auth/me');
+      const data = await response.json();
+
+      if (data.success && data.user.role === 'MEMBER' && data.user.isSecretary) {
+        fetchMemberDetails();
+      } else {
+        router.push('/member/dashboard');
+      }
+    } catch {
+      router.push('/member/dashboard');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchMemberDetails, router]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -159,7 +148,7 @@ export default function SecretaryEditMemberPage() {
       <div className="w-full">
         <div className="text-center py-12">
           <h3 className="text-lg font-medium text-gray-900">Member not found</h3>
-          <p className="text-gray-500 mt-1">The member you're looking for doesn't exist.</p>
+          <p className="text-gray-500 mt-1">The member you&apos;re looking for doesn&apos;t exist.</p>
           <Link
             href="/member/secretary/members"
             className="mt-4 inline-flex items-center px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700"

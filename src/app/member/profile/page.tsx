@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import ImageUpload from '@/components/ImageUpload';
 import FileUpload from '@/components/FileUpload';
 
 interface Member {
@@ -54,7 +54,6 @@ export default function MemberProfile() {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
@@ -152,41 +151,12 @@ export default function MemberProfile() {
     }
   };
 
-  const handleImageUpload = async (imageUrl: string) => {
-    try {
-      setIsUploading(true);
-      setError(null);
-
-      const response = await fetch('/api/member/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ profileImage: imageUrl }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setMember(prev => prev ? { ...prev, profileImage: imageUrl } : null);
-        setSuccess('Profile image updated successfully!');
-        setTimeout(() => setSuccess(null), 3000);
-      } else {
-        setError(data.message || 'Failed to update profile image');
-      }
-    } catch (error) {
-      console.error('Error updating profile image:', error);
-      setError('Failed to update profile image');
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   const handleDocumentUpload = async (file: File, documentType: string) => {
     try {
       setIsUploading(true);
       setError(null);
-      setUploadProgress(0);
+      // setUploadProgress(0);
 
       const formData = new FormData();
       formData.append('file', file);
@@ -225,7 +195,7 @@ export default function MemberProfile() {
       setError('Failed to upload document');
     } finally {
       setIsUploading(false);
-      setUploadProgress(0);
+      // setUploadProgress(0);
     }
   };
 
@@ -242,30 +212,6 @@ export default function MemberProfile() {
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'APPROVED':
-        return (
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-        );
-      case 'REJECTED':
-        return (
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        );
-      case 'PENDING':
-        return (
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        );
-      default:
-        return null;
-    }
-  };
 
   if (isLoading) {
     return <LoadingSpinner fullScreen text="Loading profile..." />;
@@ -359,9 +305,11 @@ export default function MemberProfile() {
                   {/* Profile Image */}
                   <div className="relative inline-block mb-4">
                     {member.profileImage ? (
-                      <img
+                      <Image
                         src={member.profileImage}
                         alt="Profile"
+                        width={96}
+                        height={96}
                         className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
                       />
                     ) : (

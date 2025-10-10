@@ -54,20 +54,25 @@ export default function AddReceiptPage() {
   });
 
   // Approval result state
-  const [approvalResult, setApprovalResult] = useState<any>(null);
+  const [approvalResult, setApprovalResult] = useState<{
+    approved: boolean;
+    message: string;
+    ocrMatchScore?: number;
+    generatedReceiptUrl?: string;
+  } | null>(null);
   const [showApprovalResult, setShowApprovalResult] = useState(false);
 
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [checkAuth]);
 
   useEffect(() => {
     if (user?.societyId) {
       fetchBlocks();
     }
-  }, [user?.societyId]);
+  }, [user?.societyId, fetchBlocks]);
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me');
       const data = await response.json();
@@ -82,9 +87,9 @@ export default function AddReceiptPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
 
-  const fetchBlocks = async () => {
+  const fetchBlocks = useCallback(async () => {
     setLoadingBlocks(true);
     try {
       const response = await fetch(`/api/member/blocks?societyId=${user?.societyId}`, {
@@ -104,7 +109,7 @@ export default function AddReceiptPage() {
     } finally {
       setLoadingBlocks(false);
     }
-  };
+  }, [user?.societyId]);
 
   const fetchFlats = async (blockId: string) => {
     setLoadingFlats(true);

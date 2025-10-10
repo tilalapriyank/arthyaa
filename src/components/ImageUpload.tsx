@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { PhotoIcon, XMarkIcon, EyeIcon } from '@heroicons/react/24/outline';
+import Image from 'next/image';
+import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import FileUpload, { UploadedFile } from './FileUpload';
 
 export interface ImageUploadProps {
@@ -156,9 +157,11 @@ export default function ImageUpload({
             <div className="flex items-center space-x-4">
               {/* Small Preview */}
               <div className="w-12 h-12 rounded-lg border border-gray-200 overflow-hidden bg-white shadow-sm flex-shrink-0">
-                <img
+                <Image
                   src={previewUrl}
                   alt="Preview"
+                  width={48}
+                  height={48}
                   className="w-full h-full object-contain"
                 />
               </div>
@@ -181,9 +184,11 @@ export default function ImageUpload({
             <div className="flex items-center space-x-4">
               {/* Small Preview */}
               <div className="w-12 h-12 rounded-lg border border-gray-200 overflow-hidden bg-white shadow-sm flex-shrink-0">
-                <img
+                <Image
                   src={uploadedImage.url}
                   alt={uploadedImage.name}
+                  width={48}
+                  height={48}
                   className="w-full h-full object-contain"
                   onError={(e) => {
                     console.error('Image failed to load:', uploadedImage.url);

@@ -64,7 +64,7 @@ export class OCRService {
           grpc: {
             'grpc.ssl_target_name_override': undefined,
             'grpc.default_authority': undefined,
-          } as any
+          } as Record<string, unknown>
         });
         console.log('✅ Client initialized via GOOGLE_CLOUD_CREDENTIALS');
       } else if (process.env.GOOGLE_CLOUD_CLIENT_EMAIL && process.env.GOOGLE_CLOUD_PRIVATE_KEY) {
@@ -111,7 +111,7 @@ export class OCRService {
           grpc: {
             'grpc.ssl_target_name_override': undefined,
             'grpc.default_authority': undefined,
-          } as any
+          } as Record<string, unknown>
         });
 
         console.log('✅ Google Cloud Document AI client initialized successfully');
@@ -121,7 +121,7 @@ export class OCRService {
         console.warn(`  GOOGLE_CLOUD_CREDENTIALS: ${!!process.env.GOOGLE_CLOUD_CREDENTIALS}`);
         console.warn(`  GOOGLE_CLOUD_CLIENT_EMAIL: ${!!process.env.GOOGLE_CLOUD_CLIENT_EMAIL}`);
         console.warn(`  GOOGLE_CLOUD_PRIVATE_KEY: ${!!process.env.GOOGLE_CLOUD_PRIVATE_KEY}`);
-        this.client = null as any;
+        this.client = null;
         console.warn('❌ Google Cloud credentials not configured, OCR will use fallback mode');
       }
     } catch (error) {
@@ -157,7 +157,7 @@ export class OCRService {
       if (!this.client || !this.processorId || this.processorId === 'your-processor-id') {
         console.warn('❌ Google Cloud Document AI not configured, using fallback OCR');
         console.warn(`   Reasons: client=${!!this.client}, processorId=${this.processorId}`);
-        return this.fallbackOCR(imageBuffer);
+        return this.fallbackOCR();
       }
 
       console.log('✅ Proceeding with Google Cloud Document AI processing...');
@@ -198,11 +198,11 @@ export class OCRService {
     } catch (error) {
       console.error('❌ OCR processing error:', error);
       console.log('⚠️  Falling back to basic OCR processing');
-      return this.fallbackOCR(imageBuffer);
+      return this.fallbackOCR();
     }
   }
 
-  private fallbackOCR(imageBuffer: Buffer): OcrResult {
+  private fallbackOCR(): OcrResult {
     // Fallback OCR that returns basic data
     return {
       blockNumber: '',
@@ -269,16 +269,14 @@ export class OCRService {
       for (const format of formats) {
         const match = dateString.match(format);
         if (match) {
-          let [, day, month, year] = match;
-          if (year.length === 2) {
-            year = '20' + year;
-          }
-          return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+          const [, day, month, year] = match;
+          const fullYear = year.length === 2 ? '20' + year : year;
+          return `${fullYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
         }
       }
 
       return dateString;
-    } catch (error) {
+    } catch {
       return dateString;
     }
   }
@@ -311,13 +309,13 @@ export class OCRService {
     return totalFields > 0 ? confidence / totalFields : 0;
   }
 
-  async compareWithManualEntry(ocrData: OcrResult, manualData: any): Promise<number> {
+  async compareWithManualEntry(ocrData: OcrResult, manualData: Record<string, unknown>): Promise<number> {
     let matchScore = 0;
     let totalComparisons = 0;
 
     // Compare amount
     if (ocrData.amount && manualData.amount) {
-      const amountDiff = Math.abs(ocrData.amount - parseFloat(manualData.amount));
+      const amountDiff = Math.abs(ocrData.amount - parseFloat(String(manualData.amount)));
       const amountMatch = amountDiff < 0.01; // Allow for small floating point differences
       matchScore += amountMatch ? 1 : 0;
       totalComparisons++;
@@ -325,21 +323,21 @@ export class OCRService {
 
     // Compare block number
     if (ocrData.blockNumber && manualData.blockNumber) {
-      const blockMatch = ocrData.blockNumber === manualData.blockNumber;
+      const blockMatch = ocrData.blockNumber === String(manualData.blockNumber);
       matchScore += blockMatch ? 1 : 0;
       totalComparisons++;
     }
 
     // Compare flat number
     if (ocrData.flatNumber && manualData.flatNumber) {
-      const flatMatch = ocrData.flatNumber === manualData.flatNumber;
+      const flatMatch = ocrData.flatNumber === String(manualData.flatNumber);
       matchScore += flatMatch ? 1 : 0;
       totalComparisons++;
     }
 
     // Compare purpose
     if (ocrData.purpose && manualData.purpose) {
-      const purposeMatch = ocrData.purpose.toLowerCase() === manualData.purpose.toLowerCase();
+      const purposeMatch = ocrData.purpose.toLowerCase() === String(manualData.purpose).toLowerCase();
       matchScore += purposeMatch ? 1 : 0;
       totalComparisons++;
     }
@@ -347,7 +345,7 @@ export class OCRService {
     return totalComparisons > 0 ? matchScore / totalComparisons : 0;
   }
 
-  shouldApproveReceipt(ocrMatchScore: number, ocrConfidence: number): boolean {
+  shouldApproveReceipt(ocrMatchScore: number): boolean {
     // Approve if OCR match score is 85% or higher
     return ocrMatchScore >= 0.85;
   }

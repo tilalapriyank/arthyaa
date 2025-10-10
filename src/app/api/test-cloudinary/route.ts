@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-const cloudinary = require('cloudinary').v2;
+import { NextResponse } from 'next/server';
+import { v2 as cloudinary } from 'cloudinary';
 
 // Configure Cloudinary
 cloudinary.config({
@@ -8,7 +8,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Test Cloudinary configuration
     const result = await cloudinary.api.ping();

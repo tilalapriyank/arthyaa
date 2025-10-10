@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -32,18 +32,8 @@ interface Member {
   };
 }
 
-interface User {
-  id: string;
-  email?: string;
-  phone?: string;
-  role: string;
-  firstName?: string;
-  lastName?: string;
-  isSecretary?: boolean;
-}
 
 export default function SecretaryMemberDetailsPage() {
-  const [user, setUser] = useState<User | null>(null);
   const [member, setMember] = useState<Member | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMember, setIsLoadingMember] = useState(false);
@@ -51,29 +41,7 @@ export default function SecretaryMemberDetailsPage() {
   const params = useParams();
   const memberId = params.id as string;
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const response = await fetch('/api/auth/me');
-      const data = await response.json();
-
-      if (data.success && data.user.role === 'MEMBER' && data.user.isSecretary) {
-        setUser(data.user);
-        fetchMemberDetails();
-      } else {
-        router.push('/member/dashboard');
-      }
-    } catch {
-      router.push('/member/dashboard');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchMemberDetails = async () => {
+  const fetchMemberDetails = useCallback(async () => {
     setIsLoadingMember(true);
     try {
       const response = await fetch(`/api/member/secretary/members/${memberId}`, {
@@ -93,7 +61,28 @@ export default function SecretaryMemberDetailsPage() {
     } finally {
       setIsLoadingMember(false);
     }
-  };
+  }, [memberId, router]);
+
+  const checkAuth = useCallback(async () => {
+    try {
+      const response = await fetch('/api/auth/me');
+      const data = await response.json();
+
+      if (data.success && data.user.role === 'MEMBER' && data.user.isSecretary) {
+        fetchMemberDetails();
+      } else {
+        router.push('/member/dashboard');
+      }
+    } catch {
+      router.push('/member/dashboard');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchMemberDetails, router]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   if (isLoading || isLoadingMember) {
     return <LoadingSpinner fullScreen text="Loading member details..." />;
@@ -110,7 +99,7 @@ export default function SecretaryMemberDetailsPage() {
           </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">Member Not Found</h3>
           <p className="text-gray-600 mb-8 max-w-md mx-auto">
-            The member you're looking for doesn't exist or you don't have permission to view their details.
+            The member you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view their details.
           </p>
           <Link
             href="/member/secretary/members"

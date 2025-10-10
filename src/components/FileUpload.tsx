@@ -30,7 +30,6 @@ export default function FileUpload({
   accept,
   maxSize = 10,
   category = 'all',
-  folder = 'arthyaa',
   className = '',
   disabled = false,
   multiple = false,
@@ -54,34 +53,35 @@ export default function FileUpload({
     return types[category];
   };
 
-  const validateFile = (file: File): string | null => {
-    // Check file size
-    const fileSizeInMB = file.size / (1024 * 1024);
-    if (fileSizeInMB > maxSize) {
-      return `File size too large. Maximum size: ${maxSize}MB`;
-    }
-
-    // Check file type based on category
-    if (category === 'image' && !file.type.startsWith('image/')) {
-      return 'Please select an image file';
-    }
-    
-    if (category === 'pdf' && file.type !== 'application/pdf') {
-      return 'Please select a PDF file';
-    }
-
-    return null;
-  };
 
   const handleFileSelect = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
     const file = files[0];
-    const validationError = validateFile(file);
     
-    if (validationError) {
-      setError(validationError);
+    // Validate file inside the callback
+    const fileSizeInMB = file.size / (1024 * 1024);
+    if (fileSizeInMB > maxSize) {
+      setError(`File size too large. Maximum size: ${maxSize}MB`);
       return;
+    }
+
+    if (category === 'image' && !file.type.startsWith('image/')) {
+      setError('Please select an image file');
+      return;
+    }
+    
+    if (category === 'pdf' && file.type !== 'application/pdf') {
+      setError('Please select a PDF file');
+      return;
+    }
+
+    if (category === 'document') {
+      const allowedTypes = getAllowedTypes();
+      if (!allowedTypes.includes(file.type)) {
+        setError(`Please select a valid file type. Allowed types: ${allowedTypes.join(', ')}`);
+        return;
+      }
     }
 
     setError(null);

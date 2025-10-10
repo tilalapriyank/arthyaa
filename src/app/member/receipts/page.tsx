@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import ImageUpload from '@/components/ImageUpload';
 
 interface Receipt {
   id: string;
@@ -19,51 +18,37 @@ interface Receipt {
   documentName: string;
   status: string;
   createdAt: string;
-  ocrData?: any;
+  ocrData?: Record<string, unknown>;
   ocrConfidence?: number;
   ocrMatchScore?: number;
 }
 
-interface User {
-  id: string;
-  email?: string;
-  phone?: string;
-  role: string;
-  firstName?: string;
-  lastName?: string;
-  isSecretary?: boolean;
-  societyId?: string;
-  blockNumber?: string;
-  flatNumber?: string;
-}
 
 export default function ReceiptsPage() {
-  const [user, setUser] = useState<User | null>(null);
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me');
       const data = await response.json();
 
       if (data.success && data.user && data.user.role === 'MEMBER') {
-        setUser(data.user);
         fetchReceipts();
       } else {
         router.push('/');
       }
-    } catch (error) {
+    } catch {
       router.push('/');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const fetchReceipts = async () => {
     try {

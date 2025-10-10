@@ -43,7 +43,6 @@ export default function MemberDetailsPage() {
   const [member, setMember] = useState<Member | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMember, setIsLoadingMember] = useState(false);
-  const [societyId, setSocietyId] = useState<string | null>(null);
   const [documentStatusModal, setDocumentStatusModal] = useState<{
     isOpen: boolean;
     member: Member | null;
@@ -135,7 +134,7 @@ export default function MemberDetailsPage() {
     } finally {
       setIsLoadingMember(false);
     }
-  }, [memberId, router]);
+  }, [memberId]);
 
   useEffect(() => {
     checkAuth();
@@ -208,7 +207,7 @@ export default function MemberDetailsPage() {
           </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">Member Not Found</h3>
           <p className="text-gray-600 mb-8 max-w-md mx-auto">
-            The member you're looking for doesn't exist or you don't have permission to view their details.
+            The member you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view their details.
           </p>
           <button
             onClick={() => router.push('/society-admin/members')}

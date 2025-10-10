@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { TableSkeleton } from '@/components/SkeletonLoader';
 
 interface User {
   id: string;

@@ -129,8 +129,8 @@ export async function POST(request: NextRequest) {
     const blockNumber = formData.get('blockNumber') as string;
     const memberType = formData.get('memberType') as string;
     const isSecretary = formData.get('isSecretary') === 'true';
-    const rentAgreement = formData.get('rentAgreement') as File | null;
-    const idProof = formData.get('idProof') as File | null;
+    // const rentAgreement = formData.get('rentAgreement') as File | null;
+    // const idProof = formData.get('idProof') as File | null;
 
     // Validate required fields
     if (!firstName || !lastName || !email || !phone || !flatNumber || !blockNumber) {

@@ -1,4 +1,4 @@
-const cloudinary = require('cloudinary').v2;
+import cloudinary from 'cloudinary';
 
 // Configure Cloudinary
 cloudinary.config({
@@ -17,7 +17,7 @@ export interface CloudinaryUploadResult {
 export interface CloudinaryUploadOptions {
   folder?: string;
   resource_type?: 'image' | 'video' | 'raw' | 'auto';
-  transformation?: any;
+  transformation?: Record<string, unknown>;
   public_id?: string;
 }
 
@@ -101,7 +101,7 @@ export async function deleteFromCloudinary(
  */
 export function getOptimizedImageUrl(
   publicId: string,
-  transformations: any = {}
+  transformations: Record<string, unknown> = {}
 ): string {
   return cloudinary.url(publicId, {
     ...transformations,

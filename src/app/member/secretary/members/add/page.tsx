@@ -51,14 +51,14 @@ export default function SecretaryAddMemberPage() {
 
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [checkAuth]);
 
   // Fetch blocks when user is loaded
   useEffect(() => {
     if (user?.societyId) {
       fetchBlocks();
     }
-  }, [user]);
+  }, [user, fetchBlocks]);
 
   // Fetch flats when block is selected
   useEffect(() => {
@@ -69,7 +69,7 @@ export default function SecretaryAddMemberPage() {
     }
   }, [formData.blockId]);
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me');
       const data = await response.json();
@@ -84,9 +84,9 @@ export default function SecretaryAddMemberPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
 
-  const fetchBlocks = async () => {
+  const fetchBlocks = useCallback(async () => {
     setLoadingBlocks(true);
     try {
       const response = await fetch(`/api/member/secretary/blocks?societyId=${user?.societyId}`, {
@@ -106,7 +106,7 @@ export default function SecretaryAddMemberPage() {
     } finally {
       setLoadingBlocks(false);
     }
-  };
+  }, [user?.societyId]);
 
   const fetchFlats = async (blockId: string) => {
     setLoadingFlats(true);
@@ -148,15 +148,6 @@ export default function SecretaryAddMemberPage() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, files } = e.target;
-    if (files && files[0]) {
-      setFormData(prev => ({
-        ...prev,
-        [name]: files[0]
-      }));
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -6,9 +6,10 @@ const prisma = new PrismaClient();
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const token = request.cookies.get('auth-token')?.value;
     
     if (!token) {
@@ -27,23 +28,23 @@ export async function PATCH(
       return NextResponse.json({ success: false, message: 'Invalid status' }, { status: 400 });
     }
 
-    const updateData: any = {
+    const updateData: Record<string, string | Date | undefined> = {
       status,
       updatedAt: new Date()
     };
 
     if (status === 'APPROVED') {
-      updateData.approvedBy = session.user.id;
+      updateData.approvedBy = user.id;
       updateData.approvedAt = new Date();
     } else if (status === 'REJECTED') {
-      updateData.rejectedBy = session.user.id;
+      updateData.rejectedBy = user.id;
       updateData.rejectedAt = new Date();
       updateData.rejectionReason = rejectionReason;
     }
 
     const receipt = await prisma.receipt.update({
       where: {
-        id: params.id
+        id: id
       },
       data: updateData
     });
