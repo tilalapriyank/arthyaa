@@ -15,6 +15,7 @@ export interface AuthUser {
   lastName?: string;
   isSecretary?: boolean;
   sessionId?: string;
+  societyId?: string;
 }
 
 export interface LoginResult {
@@ -40,7 +41,8 @@ export function generateToken(user: AuthUser): string {
     role: user.role,
     email: user.email,
     phone: user.phone,
-    sessionId: crypto.randomUUID()
+    sessionId: crypto.randomUUID(),
+    societyId: user.societyId
   };
 
   return jwt.sign(payload, getJWTSecret(), {
@@ -57,13 +59,15 @@ export function verifyToken(token: string): AuthUser | null {
       phone?: string;
       role: UserRole;
       sessionId: string;
+      societyId?: string;
     };
     return {
       id: decoded.userId,
       email: decoded.email,
       phone: decoded.phone,
       role: decoded.role,
-      sessionId: decoded.sessionId
+      sessionId: decoded.sessionId,
+      societyId: decoded.societyId
     };
   } catch {
     return null;
@@ -89,6 +93,9 @@ export async function loginWithEmailPassword(
         email: validatedEmail,
         role,
         status: 'ACTIVE'
+      },
+      include: {
+        society: true
       }
     });
 
@@ -135,6 +142,7 @@ export async function loginWithEmailPassword(
       firstName: user.firstName || undefined,
       lastName: user.lastName || undefined,
       isSecretary: user.isSecretary,
+      societyId: user.societyId || undefined,
     };
 
     const token = generateToken(authUser);
@@ -196,6 +204,9 @@ export async function loginWithEmailOnly(
         role: {
           in: ['ADMIN', 'SOCIETY_ADMIN']
         }
+      },
+      include: {
+        society: true
       }
     });
 
@@ -242,6 +253,7 @@ export async function loginWithEmailOnly(
       firstName: user.firstName || undefined,
       lastName: user.lastName || undefined,
       isSecretary: user.isSecretary,
+      societyId: user.societyId || undefined,
     };
 
     const token = generateToken(authUser);
@@ -361,7 +373,10 @@ export async function verifyOTP(
     const normalizedPhone = normalizePhoneNumber(validatedPhone);
 
     const user = await prisma.user.findUnique({
-      where: { phone: normalizedPhone }
+      where: { phone: normalizedPhone },
+      include: {
+        society: true
+      }
     });
 
     if (!user) {
@@ -407,6 +422,7 @@ export async function verifyOTP(
       firstName: user.firstName || undefined,
       lastName: user.lastName || undefined,
       isSecretary: user.isSecretary,
+      societyId: user.societyId || undefined,
     };
 
     const token = generateToken(authUser);
