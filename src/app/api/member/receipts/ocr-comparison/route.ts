@@ -1,16 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { verifyToken } from '@/lib/auth';
 import { ocrService } from '@/lib/ocr';
 
 const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user || session.user.role !== 'MEMBER') {
+    const token = request.cookies.get('auth-token')?.value;
+
+    if (!token) {
+      return NextResponse.json({ success: false, message: 'No authentication token' }, { status: 401 });
+    }
+
+    const user = verifyToken(token);
+
+    if (!user || user.role !== 'MEMBER') {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -46,14 +51,14 @@ export async function POST(request: NextRequest) {
     // Create the receipt
     const receipt = await prisma.receipt.create({
       data: {
-        memberId: session.user.id,
-        societyId: session.user.societyId!,
+        memberId: user.id,
+        societyId: user.societyId!,
         blockNumber: finalData.blockNumber,
         flatNumber: finalData.flatNumber,
         amount: finalData.amount,
         paymentDate: new Date(finalData.paymentDate),
         purpose: finalData.purpose,
-        paymentMethod: finalData.paymentMethod as any,
+        paymentMethod: finalData.paymentMethod as "CASH" | "UPI" | "BANK_TRANSFER" | "CHEQUE" | "OTHER",
         transactionId: finalData.transactionId || null,
         upiId: finalData.upiId || null,
         documentUrl: '', // This should be passed from the frontend
