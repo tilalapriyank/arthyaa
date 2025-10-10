@@ -52,18 +52,13 @@ export default function ReceiptsPage() {
       const response = await fetch('/api/auth/me');
       const data = await response.json();
 
-      if (data.success && data.user.role === 'MEMBER') {
+      if (data.success && data.user && data.user.role === 'MEMBER') {
         setUser(data.user);
-        setFormData(prev => ({
-          ...prev,
-          blockNumber: data.user.blockNumber || '',
-          flatNumber: data.user.flatNumber || ''
-        }));
         fetchReceipts();
       } else {
         router.push('/');
       }
-    } catch {
+    } catch (error) {
       router.push('/');
     } finally {
       setIsLoading(false);

@@ -35,7 +35,7 @@ export default function MemberLayout({
       } else {
         router.push('/');
       }
-    } catch {
+    } catch (error) {
       router.push('/');
     } finally {
       setIsLoading(false);

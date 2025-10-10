@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { verifyToken } from '@/lib/auth';
 import { receiptGenerator } from '@/lib/receipt-generator';
 
 const prisma = new PrismaClient();
@@ -11,9 +10,15 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const token = request.cookies.get('auth-token')?.value;
     
-    if (!session?.user || session.user.role !== 'MEMBER') {
+    if (!token) {
+      return NextResponse.json({ success: false, message: 'No authentication token' }, { status: 401 });
+    }
+
+    const user = verifyToken(token);
+    
+    if (!user || user.role !== 'MEMBER') {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -21,7 +26,7 @@ export async function GET(
     const receipt = await prisma.receipt.findFirst({
       where: {
         id: params.id,
-        memberId: session.user.id,
+        memberId: user.id,
         status: 'APPROVED'
       },
       include: {

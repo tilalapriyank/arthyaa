@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { verifyToken } from '@/lib/auth';
 import { ocrService } from '@/lib/ocr';
 import { uploadToCloudinary } from '@/lib/cloudinary';
 import { receiptGenerator } from '@/lib/receipt-generator';
@@ -10,15 +9,21 @@ const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const token = request.cookies.get('auth-token')?.value;
     
-    if (!session?.user || session.user.role !== 'MEMBER') {
+    if (!token) {
+      return NextResponse.json({ success: false, message: 'No authentication token' }, { status: 401 });
+    }
+
+    const user = verifyToken(token);
+    
+    if (!user || user.role !== 'MEMBER') {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
     const receipts = await prisma.receipt.findMany({
       where: {
-        memberId: session.user.id
+        memberId: user.id
       },
       orderBy: {
         createdAt: 'desc'
@@ -40,9 +45,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const token = request.cookies.get('auth-token')?.value;
     
-    if (!session?.user || session.user.role !== 'MEMBER') {
+    if (!token) {
+      return NextResponse.json({ success: false, message: 'No authentication token' }, { status: 401 });
+    }
+
+    const user = verifyToken(token);
+    
+    if (!user || user.role !== 'MEMBER') {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -98,8 +109,8 @@ export async function POST(request: NextRequest) {
     // Create receipt with automatic approval/rejection
     const receipt = await prisma.receipt.create({
       data: {
-        memberId: session.user.id,
-        societyId: session.user.societyId!,
+        memberId: user.id,
+        societyId: user.societyId!,
         blockNumber,
         flatNumber,
         amount,

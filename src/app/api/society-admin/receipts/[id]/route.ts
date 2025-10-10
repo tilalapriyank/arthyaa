@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { verifyToken } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
@@ -10,9 +9,15 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const token = request.cookies.get('auth-token')?.value;
     
-    if (!session?.user || (session.user.role !== 'SOCIETY_ADMIN' && session.user.role !== 'ADMIN')) {
+    if (!token) {
+      return NextResponse.json({ success: false, message: 'No authentication token' }, { status: 401 });
+    }
+
+    const user = verifyToken(token);
+    
+    if (!user || (user.role !== 'SOCIETY_ADMIN' && user.role !== 'ADMIN')) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
