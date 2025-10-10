@@ -199,6 +199,7 @@ enum PaymentMethod {
   UPI
   BANK_TRANSFER
   CHEQUE
+  OTHER
 }
 
 model Receipt {

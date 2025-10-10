@@ -234,7 +234,7 @@ export async function POST(request: NextRequest) {
         role: 'MEMBER',
         status: 'ACTIVE', // Members are automatically active
         isSecretary: isSecretary || false,
-        memberType: memberType || 'OWNER',
+        memberType: (memberType as 'OWNER' | 'TENANT') || 'OWNER',
         flatNumber: flat.name, // Store flat name for display
         blockNumber: flat.block.name, // Store block name for display
         societyId,

@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
         upiId: finalData.upiId || null,
         documentUrl: '', // This should be passed from the frontend
         documentName: '', // This should be passed from the frontend
-        ocrData: ocrData ? JSON.stringify(ocrData) : null,
+        ocrData: ocrData ? JSON.stringify(ocrData) : undefined,
         ocrConfidence: ocrData?.confidence || null,
         ocrMatchScore,
         isManualEntry: !useOcrData

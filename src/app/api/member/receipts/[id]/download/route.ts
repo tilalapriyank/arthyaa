@@ -66,8 +66,18 @@ export async function GET(
       paymentMethod: receipt.paymentMethod,
       transactionId: receipt.transactionId || undefined,
       upiId: receipt.upiId || undefined,
-      member: receipt.member,
-      society: receipt.society,
+      member: {
+        firstName: receipt.member.firstName || undefined,
+        lastName: receipt.member.lastName || undefined,
+        email: receipt.member.email || undefined,
+      },
+      society: {
+        name: receipt.society.name,
+        address: receipt.society.address || undefined,
+        city: receipt.society.city || undefined,
+        state: receipt.society.state || undefined,
+        pincode: receipt.society.pincode || undefined,
+      },
       createdAt: receipt.createdAt.toISOString()
     });
 

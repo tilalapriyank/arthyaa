@@ -22,6 +22,7 @@ interface Receipt {
   ocrConfidence?: number;
   ocrMatchScore?: number;
   generatedReceiptUrl?: string;
+  isManualEntry?: boolean;
 }
 
 
@@ -33,6 +34,21 @@ export default function ReceiptDetailPage() {
   const router = useRouter();
   const params = useParams();
   const receiptId = params.id as string;
+
+  const fetchReceipt = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/member/receipts/${receiptId}`);
+      const data = await response.json();
+      if (data.success) {
+        setReceipt(data.receipt);
+      } else {
+        router.push('/member/receipts');
+      }
+    } catch (error) {
+      console.error('Error fetching receipt:', error);
+      router.push('/member/receipts');
+    }
+  }, [receiptId, router]);
 
   const checkAuth = useCallback(async () => {
     try {
@@ -54,21 +70,6 @@ export default function ReceiptDetailPage() {
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
-
-  const fetchReceipt = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/member/receipts/${receiptId}`);
-      const data = await response.json();
-      if (data.success) {
-        setReceipt(data.receipt);
-      } else {
-        router.push('/member/receipts');
-      }
-    } catch (error) {
-      console.error('Error fetching receipt:', error);
-      router.push('/member/receipts');
-    }
-  }, [receiptId, router]);
 
   const handleDeleteReceipt = async () => {
     setIsDeleting(true);

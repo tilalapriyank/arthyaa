@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
         purpose
       });
       
-      shouldApprove = ocrService.shouldApproveReceipt(ocrMatchScore, ocrData.confidence);
+      shouldApprove = ocrService.shouldApproveReceipt(ocrMatchScore);
     }
 
     // Create receipt with automatic approval/rejection
