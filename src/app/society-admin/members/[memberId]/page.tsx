@@ -369,7 +369,7 @@ export default function MemberDetailsPage() {
                         View Document
                       </a>
                     )}
-                    {member.policyVerificationDeadline && (
+                    {member.policyVerificationDeadline && member.policyVerificationDocumentStatus !== 'APPROVED' && (
                       <p className="text-xs text-gray-500 mt-1">
                         Deadline: {new Date(member.policyVerificationDeadline).toLocaleDateString()}
                       </p>

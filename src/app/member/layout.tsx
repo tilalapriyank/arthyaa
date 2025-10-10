@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface User {
@@ -21,7 +22,6 @@ export default function MemberLayout({
 }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
   const pathname = usePathname();
 
@@ -36,7 +36,7 @@ export default function MemberLayout({
         router.push('/');
       }
     } catch {
-      router.push('/login');
+      router.push('/');
     } finally {
       setIsLoading(false);
     }
@@ -48,10 +48,14 @@ export default function MemberLayout({
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      localStorage.removeItem('auth-token');
+      setUser(null);
       router.push('/');
     } catch (error) {
       console.error('Logout error:', error);
+      localStorage.removeItem('auth-token');
+      setUser(null);
+      router.push('/');
     }
   };
 
@@ -62,191 +66,240 @@ export default function MemberLayout({
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-lg border-r border-gray-200">
+      <div className="w-64 border-r border-gray-200 bg-white flex flex-col transition-all duration-300 ease-in-out h-screen fixed left-0 top-0 overflow-y-auto" style={{background: 'linear-gradient(181.23deg, rgba(245, 247, 249, 0.7) 0.75%, rgba(236, 239, 247, 0.63) 17.73%, rgba(234, 234, 247, 0.63) 34.42%, rgba(234, 230, 245, 0.7) 50.42%, rgba(238, 228, 242, 0.7) 66.42%, rgba(247, 237, 243, 0.7) 81.23%, rgba(242, 235, 238, 0.7) 99.25%)'}}>
         {/* Logo */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-4 flex items-center justify-between relative">
           <div className="flex items-center">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center mr-3">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent">Arthyaa</span>
+            <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-cyan-600">Arthyaa</span>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav className="p-4">
-          <div className="space-y-2">
-            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">GENERAL</div>
-            
-            {/* Dashboard */}
-            <div className={`rounded-lg p-3 cursor-pointer transition-colors ${
-              pathname === '/member/dashboard' 
-                ? 'bg-blue-50 border-l-4 border-blue-600' 
-                : 'hover:bg-gray-50'
-            }`}>
-              <div className="flex items-center">
-                <svg className={`w-5 h-5 mr-3 ${
-                  pathname === '/member/dashboard' ? 'text-blue-600' : 'text-gray-600'
-                }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z" />
-                </svg>
-                <span className={`font-medium ${
-                  pathname === '/member/dashboard' ? 'text-blue-900' : 'text-gray-700'
-                }`}>Dashboard</span>
-              </div>
-            </div>
-
-            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 mt-8">SERVICES</div>
-            
-            {/* My Profile */}
-            <div className="hover:bg-gray-50 rounded-lg p-3 cursor-pointer transition-colors">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span className="font-medium text-gray-700">My Profile</span>
-              </div>
-            </div>
-
-            {/* Dues & Payments */}
-            <div className="hover:bg-gray-50 rounded-lg p-3 cursor-pointer transition-colors">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                </svg>
-                <span className="font-medium text-gray-700">Dues & Payments</span>
-              </div>
-            </div>
-
-            {/* Maintenance Requests */}
-            <div className="hover:bg-gray-50 rounded-lg p-3 cursor-pointer transition-colors">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span className="font-medium text-gray-700">Maintenance Requests</span>
-              </div>
-            </div>
-
-            {/* Amenities Booking */}
-            <div className="hover:bg-gray-50 rounded-lg p-3 cursor-pointer transition-colors">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span className="font-medium text-gray-700">Amenities Booking</span>
-              </div>
-            </div>
-
-            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 mt-8">COMMUNITY</div>
-            
-            {/* Notifications */}
-            <div className="hover:bg-gray-50 rounded-lg p-3 cursor-pointer transition-colors">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5z" />
-                </svg>
-                <span className="font-medium text-gray-700">Notifications</span>
-              </div>
-            </div>
-
-            {/* Announcements */}
-            <div className="hover:bg-gray-50 rounded-lg p-3 cursor-pointer transition-colors">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                </svg>
-                <span className="font-medium text-gray-700">Announcements</span>
-              </div>
-            </div>
-
-            {/* Community Forum */}
-            <div className="hover:bg-gray-50 rounded-lg p-3 cursor-pointer transition-colors">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-                <span className="font-medium text-gray-700">Community Forum</span>
-              </div>
-            </div>
+        <div className="flex-1 overflow-y-auto">
+          <div className="px-3 py-2">
+            <p className="px-1 text-xs font-normal text-gray-500 uppercase tracking-wider">GENERAL</p>
+            <nav className="mt-2 space-y-1">
+              <Link 
+                title="Dashboard" 
+                className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
+                  pathname === '/member/dashboard' 
+                    ? 'text-black bg-gray-50 shadow-sm border border-gray-200' 
+                    : 'text-[#45474B] hover:bg-gray-50'
+                }`} 
+                href="/member/dashboard"
+              >
+                <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
+                  pathname === '/member/dashboard' ? 'text-violet-600' : 'text-[#45474B]'
+                }`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 22 21" fill="none">
+                    <path d="M2.74415 5.63814L8.74415 1.54058C10.1046 0.611517 11.8954 0.611515 13.2558 1.54058L19.2558 5.63814C20.3472 6.38347 21 7.61975 21 8.94134V16C21 18.2091 19.2091 20 17 20H5C2.79086 20 1 18.2091 1 16V8.94134C1 7.61975 1.65278 6.38347 2.74415 5.63814Z" stroke="currentColor"></path>
+                    <path d="M11 13L11 17" stroke="currentColor" strokeLinecap="round"></path>
+                  </svg>
+                </div>
+                <span className="flex-1">Dashboard</span>
+              </Link>
+            </nav>
           </div>
-        </nav>
+
+          <div className="px-3 py-2">
+            <p className="px-1 text-xs font-normal text-gray-500 uppercase tracking-wider">SERVICES</p>
+            <nav className="mt-2 space-y-1">
+              <Link 
+                title="My Profile" 
+                className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
+                  pathname.startsWith('/member/profile') 
+                    ? 'text-black bg-gray-50 shadow-sm border border-gray-200' 
+                    : 'text-[#45474B] hover:bg-gray-50'
+                }`} 
+                href="/member/profile"
+              >
+                <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
+                  pathname.startsWith('/member/profile') ? 'text-violet-600' : 'text-[#45474B]'
+                }`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
+                    <circle cx="12" cy="7" r="4" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></circle>
+                  </svg>
+                </div>
+                <span className="flex-1">My Profile</span>
+              </Link>
+
+              <Link 
+                title="Dues & Payments" 
+                className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
+                  pathname.startsWith('/member/dues') 
+                    ? 'text-black bg-gray-50 shadow-sm border border-gray-200' 
+                    : 'text-[#45474B] hover:bg-gray-50'
+                }`} 
+                href="/member/dues"
+              >
+                <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
+                  pathname.startsWith('/member/dues') ? 'text-violet-600' : 'text-[#45474B]'
+                }`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></circle>
+                  </svg>
+                </div>
+                <span className="flex-1">Dues & Payments</span>
+              </Link>
+
+              <Link 
+                title="Maintenance Requests" 
+                className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
+                  pathname.startsWith('/member/maintenance') 
+                    ? 'text-black bg-gray-50 shadow-sm border border-gray-200' 
+                    : 'text-[#45474B] hover:bg-gray-50'
+                }`} 
+                href="/member/maintenance"
+              >
+                <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
+                  pathname.startsWith('/member/maintenance') ? 'text-violet-600' : 'text-[#45474B]'
+                }`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
+                  </svg>
+                </div>
+                <span className="flex-1">Maintenance Requests</span>
+              </Link>
+
+              <Link 
+                title="Amenities Booking" 
+                className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
+                  pathname.startsWith('/member/amenities') 
+                    ? 'text-black bg-gray-50 shadow-sm border border-gray-200' 
+                    : 'text-[#45474B] hover:bg-gray-50'
+                }`} 
+                href="/member/amenities"
+              >
+                <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
+                  pathname.startsWith('/member/amenities') ? 'text-violet-600' : 'text-[#45474B]'
+                }`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></line>
+                    <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></line>
+                    <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></line>
+                  </svg>
+                </div>
+                <span className="flex-1">Amenities Booking</span>
+              </Link>
+            </nav>
+          </div>
+
+          <div className="px-3 py-2">
+            <p className="px-1 text-xs font-normal text-gray-500 uppercase tracking-wider">COMMUNITY</p>
+            <nav className="mt-2 space-y-1">
+              <Link 
+                title="Notifications" 
+                className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
+                  pathname.startsWith('/member/notifications') 
+                    ? 'text-black bg-gray-50 shadow-sm border border-gray-200' 
+                    : 'text-[#45474B] hover:bg-gray-50'
+                }`} 
+                href="/member/notifications"
+              >
+                <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
+                  pathname.startsWith('/member/notifications') ? 'text-violet-600' : 'text-[#45474B]'
+                }`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
+                  </svg>
+                </div>
+                <span className="flex-1">Notifications</span>
+              </Link>
+
+              <Link 
+                title="Announcements" 
+                className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
+                  pathname.startsWith('/member/announcements') 
+                    ? 'text-black bg-gray-50 shadow-sm border border-gray-200' 
+                    : 'text-[#45474B] hover:bg-gray-50'
+                }`} 
+                href="/member/announcements"
+              >
+                <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
+                  pathname.startsWith('/member/announcements') ? 'text-violet-600' : 'text-[#45474B]'
+                }`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
+                  </svg>
+                </div>
+                <span className="flex-1">Announcements</span>
+              </Link>
+
+              <Link 
+                title="Community Forum" 
+                className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
+                  pathname.startsWith('/member/forum') 
+                    ? 'text-black bg-gray-50 shadow-sm border border-gray-200' 
+                    : 'text-[#45474B] hover:bg-gray-50'
+                }`} 
+                href="/member/forum"
+              >
+                <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
+                  pathname.startsWith('/member/forum') ? 'text-violet-600' : 'text-[#45474B]'
+                }`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
+                  </svg>
+                </div>
+                <span className="flex-1">Community Forum</span>
+              </Link>
+            </nav>
+          </div>
+        </div>
 
         {/* User Profile at Bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-semibold text-sm">
-                {user?.firstName?.[0]}{user?.lastName?.[0]}
+        <div className="border-t border-gray-200 p-4">
+          <div className="flex items-center">
+            <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
+              <span className="flex h-full w-full items-center justify-center rounded-full bg-violet-100 text-violet-600 font-semibold text-sm">
+                {user?.firstName?.[0] || user?.email?.[0]?.toUpperCase() || 'M'}
+                {user?.lastName?.[0] || ''}
               </span>
-            </div>
-            <div className="flex-1 min-w-0">
+            </span>
+            <div className="ml-3 flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-900 truncate">
-                {user?.firstName} {user?.lastName}
-                {user?.isSecretary && <span className="ml-1 text-xs bg-blue-100 text-blue-800 px-1 py-0.5 rounded">Secretary</span>}
+                {user?.firstName && user?.lastName 
+                  ? `${user.firstName} ${user.lastName}`
+                  : user?.email?.split('@')[0] || 'Member'
+                }
+                {user?.isSecretary && (
+                  <span className="ml-1 text-xs bg-blue-100 text-blue-800 px-1 py-0.5 rounded">Secretary</span>
+                )}
               </p>
-              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+              <p className="text-xs text-gray-500 truncate">
+                {user?.email || 'No email'}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col ml-64">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            {/* Search Bar */}
-            <div className="flex-1 max-w-md">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search services, announcements, contacts..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="flex h-10 rounded-md border border-input bg-background pl-10 pr-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full"
-                />
-              </div>
-            </div>
-
-            {/* User Profile and Logout */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">
-                    {user?.firstName?.[0]}{user?.lastName?.[0]}
-                  </span>
-                </div>
-                <div className="text-sm">
-                  <div className="font-semibold text-gray-900">{user?.firstName} {user?.lastName}</div>
-                  <div className="text-gray-600">
-                    {user?.isSecretary ? 'Secretary' : 'Member'}
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 h-10 px-3 py-2"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Logout
-              </button>
-            </div>
+        <header className="h-16 border-b border-gray-200 bg-white sticky top-0 z-10">
+          <div className="flex items-center justify-end h-full px-4">
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center space-x-2 px-3 py-2 hover:bg-gray-50 rounded-md text-gray-600 transition-colors cursor-pointer"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" x2="9" y1="12" y2="12"></line>
+              </svg>
+              <span className="text-sm font-medium">Logout</span>
+            </button>
           </div>
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 bg-white">
           {children}
         </main>
       </div>

@@ -23,22 +23,32 @@ export interface CloudinaryUploadOptions {
 
 /**
  * Upload file to Cloudinary
- * @param file - File to upload
+ * @param file - File to upload (File object or Buffer)
  * @param options - Upload options
  * @returns Promise<CloudinaryUploadResult>
  */
 export async function uploadToCloudinary(
-  file: File,
+  file: File | Buffer,
   options: CloudinaryUploadOptions = {}
 ): Promise<CloudinaryUploadResult> {
   try {
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    let buffer: Buffer;
+    let mimeType: string;
+
+    if (file instanceof Buffer) {
+      // If it's already a Buffer, use it directly
+      buffer = file;
+      mimeType = 'application/octet-stream'; // Default MIME type
+    } else {
+      // If it's a File object, convert to buffer
+      const bytes = await file.arrayBuffer();
+      buffer = Buffer.from(bytes);
+      mimeType = file.type;
+    }
 
     // Convert buffer to base64 string
     const base64String = buffer.toString('base64');
-    const dataURI = `data:${file.type};base64,${base64String}`;
+    const dataURI = `data:${mimeType};base64,${base64String}`;
 
     // Upload to Cloudinary
     const result = await cloudinary.uploader.upload(dataURI, {

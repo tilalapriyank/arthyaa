@@ -54,11 +54,11 @@ export default function MemberLoginPage() {
     }
 
     // Basic phone number validation
-    const phoneRegex = /^[6-9]\d{9}$/;
-    if (!phoneRegex.test(phoneNumber.replace(/\D/g, ''))) {
-      setError('Please enter a valid 10-digit Indian phone number');
-      return;
-    }
+    // const phoneRegex = /^[6-9]\d{9}$/;
+    // if (!phoneRegex.test(phoneNumber.replace(/\D/g, ''))) {
+    //   setError('Please enter a valid 10-digit Indian phone number');
+    //   return;
+    // }
 
     setIsLoading(true);
     setError('');
@@ -276,7 +276,6 @@ export default function MemberLoginPage() {
                     >
                       {isLoading ? (
                         <>
-                          <LoadingSpinner size="sm" className="mr-2" />
                           Sending OTP...
                         </>
                       ) : 'Send OTP'}
