@@ -231,7 +231,6 @@ export default function AdminLoginPage() {
                   >
                     {isLoading ? (
                       <>
-                        <LoadingSpinner size="sm" className="mr-2" />
                         Signing in...
                       </>
                     ) : 'Log in'}

@@ -374,7 +374,6 @@ export default function MemberLoginPage() {
                       >
                         {isLoading ? (
                           <>
-                            <LoadingSpinner size="sm" className="mr-2" />
                             Verifying...
                           </>
                         ) : 'Verify & Login'}
