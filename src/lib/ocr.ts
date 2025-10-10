@@ -1,4 +1,5 @@
 import { DocumentProcessorServiceClient } from '@google-cloud/documentai';
+import { GoogleAuth } from 'google-auth-library';
 
 interface OcrResult {
   blockNumber?: string;
@@ -11,20 +12,80 @@ interface OcrResult {
 }
 
 export class OCRService {
-  private client: DocumentProcessorServiceClient;
+  private client: DocumentProcessorServiceClient | null = null;
   private projectId: string;
   private location: string;
   private processorId: string;
+  private initializationAttempted: boolean = false;
+  private initializationError: Error | null = null;
 
   constructor() {
-    // Get credentials from environment variables
-    const credentials = process.env.GOOGLE_CLOUD_CREDENTIALS 
-      ? JSON.parse(Buffer.from(process.env.GOOGLE_CLOUD_CREDENTIALS, 'base64').toString())
-      : {
+    this.projectId = process.env.GOOGLE_CLOUD_PROJECT_ID || 'arthyaa';
+    this.location = process.env.GOOGLE_CLOUD_LOCATION || 'us';
+    this.processorId = process.env.GOOGLE_CLOUD_PROCESSOR_ID || 'your-processor-id';
+
+    console.log('=== OCR Service Constructor Called ===');
+    console.log(`  Project ID: ${this.projectId}`);
+    console.log(`  Processor ID: ${this.processorId}`);
+    console.log('  Note: Client will be initialized on first use (lazy initialization)');
+  }
+
+  /**
+   * Lazy initialization of Document AI client
+   * Called on first actual use, not during module import
+   */
+  private initializeClient(): void {
+    if (this.initializationAttempted) {
+      return; // Already tried, don't retry
+    }
+
+    this.initializationAttempted = true;
+
+    console.log('\n=== Initializing Document AI Client (Lazy) ===');
+    console.log(`Environment check:`);
+    console.log(`  GOOGLE_CLOUD_CREDENTIALS: ${process.env.GOOGLE_CLOUD_CREDENTIALS ? 'SET' : 'NOT SET'}`);
+    console.log(`  GOOGLE_CLOUD_CLIENT_EMAIL: ${process.env.GOOGLE_CLOUD_CLIENT_EMAIL ? 'SET' : 'NOT SET'}`);
+    console.log(`  GOOGLE_CLOUD_PRIVATE_KEY: ${process.env.GOOGLE_CLOUD_PRIVATE_KEY ? 'SET (length: ' + process.env.GOOGLE_CLOUD_PRIVATE_KEY.length + ')' : 'NOT SET'}`);
+    console.log(`  Project ID: ${this.projectId}`);
+    console.log(`  Processor ID: ${this.processorId}`);
+
+    // Initialize client with proper error handling
+    try {
+      // Check if we have proper credentials
+      if (process.env.GOOGLE_CLOUD_CREDENTIALS) {
+        console.log('📝 Using GOOGLE_CLOUD_CREDENTIALS path...');
+        const credentials = JSON.parse(Buffer.from(process.env.GOOGLE_CLOUD_CREDENTIALS, 'base64').toString());
+        const auth = new GoogleAuth({
+          credentials: credentials
+        });
+        this.client = new DocumentProcessorServiceClient({
+          auth: auth,
+          // gRPC client options for OpenSSL 3.x compatibility
+          grpc: {
+            'grpc.ssl_target_name_override': undefined,
+            'grpc.default_authority': undefined,
+          } as any
+        });
+        console.log('✅ Client initialized via GOOGLE_CLOUD_CREDENTIALS');
+      } else if (process.env.GOOGLE_CLOUD_CLIENT_EMAIL && process.env.GOOGLE_CLOUD_PRIVATE_KEY) {
+        console.log('📝 Using individual environment variables path...');
+
+        // Format private key - handle both escaped (\n) and actual newlines
+        let privateKey = process.env.GOOGLE_CLOUD_PRIVATE_KEY;
+        console.log(`Private key length: ${privateKey.length}`);
+        console.log(`Has escaped newlines: ${privateKey.includes('\\n')}`);
+        console.log(`Has BEGIN marker: ${privateKey.includes('BEGIN PRIVATE KEY')}`);
+
+        if (privateKey.includes('\\n')) {
+          privateKey = privateKey.replace(/\\n/g, '\n');
+          console.log('Converted escaped newlines to actual newlines');
+        }
+
+        const credentials = {
           type: "service_account",
-          project_id: process.env.GOOGLE_CLOUD_PROJECT_ID || "arthyaa",
+          project_id: this.projectId,
           private_key_id: process.env.GOOGLE_CLOUD_PRIVATE_KEY_ID,
-          private_key: process.env.GOOGLE_CLOUD_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+          private_key: privateKey,
           client_email: process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
           client_id: process.env.GOOGLE_CLOUD_CLIENT_ID,
           auth_uri: "https://accounts.google.com/o/oauth2/auth",
@@ -34,19 +95,75 @@ export class OCRService {
           universe_domain: "googleapis.com"
         };
 
-    this.client = new DocumentProcessorServiceClient({
-      credentials
-    });
-    
-    this.projectId = process.env.GOOGLE_CLOUD_PROJECT_ID || 'arthyaa';
-    this.location = process.env.GOOGLE_CLOUD_LOCATION || 'us';
-    this.processorId = process.env.GOOGLE_CLOUD_PROCESSOR_ID || 'your-processor-id';
+        console.log('Initializing Google Cloud Document AI with service account credentials...');
+        console.log(`  Project ID: ${this.projectId}`);
+        console.log(`  Processor ID: ${this.processorId}`);
+        console.log(`  Client Email: ${credentials.client_email}`);
+
+        const auth = new GoogleAuth({
+          credentials: credentials
+        });
+
+        console.log('Creating DocumentProcessorServiceClient...');
+        this.client = new DocumentProcessorServiceClient({
+          auth: auth,
+          // gRPC client options for OpenSSL 3.x compatibility
+          grpc: {
+            'grpc.ssl_target_name_override': undefined,
+            'grpc.default_authority': undefined,
+          } as any
+        });
+
+        console.log('✅ Google Cloud Document AI client initialized successfully');
+      } else {
+        // No credentials available, client will be null
+        console.warn('⚠️  No credentials path matched!');
+        console.warn(`  GOOGLE_CLOUD_CREDENTIALS: ${!!process.env.GOOGLE_CLOUD_CREDENTIALS}`);
+        console.warn(`  GOOGLE_CLOUD_CLIENT_EMAIL: ${!!process.env.GOOGLE_CLOUD_CLIENT_EMAIL}`);
+        console.warn(`  GOOGLE_CLOUD_PRIVATE_KEY: ${!!process.env.GOOGLE_CLOUD_PRIVATE_KEY}`);
+        this.client = null as any;
+        console.warn('❌ Google Cloud credentials not configured, OCR will use fallback mode');
+      }
+    } catch (error) {
+      console.error('❌ Failed to initialize Google Cloud Document AI client:');
+      console.error('Error type:', error instanceof Error ? error.constructor.name : typeof error);
+      console.error('Error message:', error instanceof Error ? error.message : String(error));
+      console.error('Full error:', error);
+      this.client = null;
+      this.initializationError = error instanceof Error ? error : new Error(String(error));
+    }
+
+    console.log(`=== Initialization Complete: Client ${this.client ? 'INITIALIZED' : 'NULL'} ===\n`);
   }
 
   async processReceipt(imageBuffer: Buffer): Promise<OcrResult> {
     try {
+      // Lazy initialization on first use
+      if (!this.initializationAttempted) {
+        this.initializeClient();
+      }
+
+      // Check if client is available and processor ID is configured
+      console.log('OCR Service Status Check:');
+      console.log(`  Client initialized: ${!!this.client}`);
+      console.log(`  Processor ID: ${this.processorId}`);
+      console.log(`  Project ID: ${this.projectId}`);
+      console.log(`  Location: ${this.location}`);
+
+      if (this.initializationError) {
+        console.warn(`❌ Previous initialization error: ${this.initializationError.message}`);
+      }
+
+      if (!this.client || !this.processorId || this.processorId === 'your-processor-id') {
+        console.warn('❌ Google Cloud Document AI not configured, using fallback OCR');
+        console.warn(`   Reasons: client=${!!this.client}, processorId=${this.processorId}`);
+        return this.fallbackOCR(imageBuffer);
+      }
+
+      console.log('✅ Proceeding with Google Cloud Document AI processing...');
       const name = `projects/${this.projectId}/locations/${this.location}/processors/${this.processorId}`;
-      
+      console.log(`   Resource name: ${name}`);
+
       const request = {
         name,
         rawDocument: {
@@ -55,6 +172,7 @@ export class OCRService {
         },
       };
 
+      console.log('   Sending request to Document AI...');
       const [result] = await this.client.processDocument(request);
       const { document } = result;
 
@@ -62,21 +180,39 @@ export class OCRService {
         throw new Error('No document returned from OCR service');
       }
 
+      console.log('✅ Document AI processing successful');
       // Extract text from the document
       const rawText = document.text || '';
-      
+      console.log(`   Extracted text length: ${rawText.length} characters`);
+
       // Parse the extracted text to find relevant information
       const extractedData = this.parseReceiptText(rawText);
-      
+      const confidence = this.calculateConfidence(extractedData);
+      console.log(`   OCR Confidence: ${(confidence * 100).toFixed(1)}%`);
+
       return {
         ...extractedData,
         rawText,
-        confidence: this.calculateConfidence(extractedData)
+        confidence
       };
     } catch (error) {
-      console.error('OCR processing error:', error);
-      throw new Error('Failed to process document with OCR');
+      console.error('❌ OCR processing error:', error);
+      console.log('⚠️  Falling back to basic OCR processing');
+      return this.fallbackOCR(imageBuffer);
     }
+  }
+
+  private fallbackOCR(imageBuffer: Buffer): OcrResult {
+    // Fallback OCR that returns basic data
+    return {
+      blockNumber: '',
+      flatNumber: '',
+      amount: 0,
+      paymentDate: '',
+      purpose: '',
+      rawText: 'OCR processing not available - manual entry required',
+      confidence: 0.1
+    };
   }
 
   private parseReceiptText(text: string): Partial<OcrResult> {

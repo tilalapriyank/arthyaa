@@ -40,6 +40,8 @@ export async function GET(request: NextRequest) {
       { success: false, message: 'Internal server error' },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
@@ -75,7 +77,7 @@ export async function POST(request: NextRequest) {
 
     // Upload document to Cloudinary
     const documentBuffer = await document.arrayBuffer();
-    const documentUpload = await uploadToCloudinary(Buffer.from(documentBuffer), 'receipts');
+    const documentUpload = await uploadToCloudinary(Buffer.from(documentBuffer), { folder: 'receipts' });
     
     if (!documentUpload.success) {
       return NextResponse.json({ success: false, message: 'Failed to upload document' }, { status: 500 });
@@ -107,28 +109,37 @@ export async function POST(request: NextRequest) {
     }
 
     // Create receipt with automatic approval/rejection
-    const receipt = await prisma.receipt.create({
-      data: {
-        memberId: user.id,
-        societyId: user.societyId!,
-        blockNumber,
-        flatNumber,
-        amount,
-        paymentDate: new Date(paymentDate),
-        purpose,
-        paymentMethod: paymentMethod as any,
-        transactionId: transactionId || null,
-        upiId: upiId || null,
-        documentUrl: documentUpload.url,
-        documentName: document.name,
-        ocrData: ocrData ? JSON.stringify(ocrData) : null,
-        ocrConfidence: ocrData?.confidence || null,
-        ocrMatchScore,
-        isManualEntry: !ocrData,
-        status: shouldApprove ? 'APPROVED' : 'REJECTED',
-        autoApproved: true
-      }
-    });
+    let receipt;
+    try {
+      receipt = await prisma.receipt.create({
+        data: {
+          memberId: user.id,
+          societyId: user.societyId!,
+          blockNumber,
+          flatNumber,
+          amount,
+          paymentDate: new Date(paymentDate),
+          purpose,
+          paymentMethod: paymentMethod as any,
+          transactionId: transactionId || null,
+          upiId: upiId || null,
+          documentUrl: documentUpload.secure_url!,
+          documentName: document.name,
+          ocrData: ocrData ? JSON.stringify(ocrData) : undefined,
+          ocrConfidence: ocrData?.confidence || null,
+          ocrMatchScore,
+          isManualEntry: !ocrData,
+          status: shouldApprove ? 'APPROVED' : 'REJECTED',
+          autoApproved: true
+        }
+      });
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Failed to save receipt to database' 
+      }, { status: 500 });
+    }
 
     return NextResponse.json({
       success: true,
@@ -143,5 +154,7 @@ export async function POST(request: NextRequest) {
       { success: false, message: 'Internal server error' },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }

@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import ImageUpload from '@/components/ImageUpload';
 
 interface User {
   id: string;
@@ -18,14 +17,31 @@ interface User {
   flatNumber?: string;
 }
 
+interface Block {
+  id: string;
+  name: string;
+}
+
+interface Flat {
+  id: string;
+  name: string;
+  floorNumber: number;
+}
+
 export default function AddReceiptPage() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [blocks, setBlocks] = useState<Block[]>([]);
+  const [flats, setFlats] = useState<Flat[]>([]);
+  const [loadingBlocks, setLoadingBlocks] = useState(false);
+  const [loadingFlats, setLoadingFlats] = useState(false);
   const router = useRouter();
 
   // Form state
   const [formData, setFormData] = useState({
+    blockId: '',
+    flatId: '',
     blockNumber: '',
     flatNumber: '',
     amount: '',
@@ -45,6 +61,12 @@ export default function AddReceiptPage() {
     checkAuth();
   }, []);
 
+  useEffect(() => {
+    if (user?.societyId) {
+      fetchBlocks();
+    }
+  }, [user?.societyId]);
+
   const checkAuth = async () => {
     try {
       const response = await fetch('/api/auth/me');
@@ -52,11 +74,6 @@ export default function AddReceiptPage() {
 
       if (data.success && data.user.role === 'MEMBER') {
         setUser(data.user);
-        setFormData(prev => ({
-          ...prev,
-          blockNumber: data.user.blockNumber || '',
-          flatNumber: data.user.flatNumber || ''
-        }));
       } else {
         router.push('/');
       }
@@ -67,12 +84,80 @@ export default function AddReceiptPage() {
     }
   };
 
+  const fetchBlocks = async () => {
+    setLoadingBlocks(true);
+    try {
+      const response = await fetch(`/api/member/blocks?societyId=${user?.societyId}`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        setBlocks(data.blocks);
+      } else {
+        console.error('Error fetching blocks:', data.message);
+        setBlocks([]);
+      }
+    } catch (error) {
+      console.error('Error fetching blocks:', error);
+      setBlocks([]);
+    } finally {
+      setLoadingBlocks(false);
+    }
+  };
+
+  const fetchFlats = async (blockId: string) => {
+    setLoadingFlats(true);
+    try {
+      const response = await fetch(`/api/member/flats?blockId=${blockId}`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        setFlats(data.flats);
+      } else {
+        console.error('Error fetching flats:', data.message);
+        setFlats([]);
+      }
+    } catch (error) {
+      console.error('Error fetching flats:', error);
+      setFlats([]);
+    } finally {
+      setLoadingFlats(false);
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    // If block is changed, reset flat selection and fetch flats
+    if (name === 'blockId') {
+      setFormData(prev => ({
+        ...prev,
+        blockId: value,
+        flatId: '', // Reset flat selection when block changes
+        blockNumber: blocks.find(b => b.id === value)?.name || '',
+        flatNumber: '' // Reset flat number
+      }));
+      
+      if (value) {
+        fetchFlats(value);
+      } else {
+        setFlats([]);
+      }
+    } else if (name === 'flatId') {
+      setFormData(prev => ({
+        ...prev,
+        flatId: value,
+        flatNumber: flats.find(f => f.id === value)?.name || ''
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleFileChange = (file: File | null) => {
@@ -120,8 +205,10 @@ export default function AddReceiptPage() {
         if (data.approved) {
           // Reset form after successful submission
           setFormData({
-            blockNumber: user?.blockNumber || '',
-            flatNumber: user?.flatNumber || '',
+            blockId: '',
+            flatId: '',
+            blockNumber: '',
+            flatNumber: '',
             amount: '',
             paymentDate: '',
             purpose: '',
@@ -130,6 +217,7 @@ export default function AddReceiptPage() {
             upiId: '',
             document: null
           });
+          setFlats([]);
         }
       } else {
         alert(data.message || 'Error creating receipt');
@@ -182,28 +270,49 @@ export default function AddReceiptPage() {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Property Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Block Number *</label>
-                  <input
-                    type="text"
-                    name="blockNumber"
-                    value={formData.blockNumber}
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Block *</label>
+                  <select
+                    name="blockId"
+                    value={formData.blockId}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    placeholder="Enter block number"
-                  />
+                    disabled={loadingBlocks}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:bg-gray-100"
+                  >
+                    <option value="">Select Block</option>
+                    {blocks.map((block) => (
+                      <option key={block.id} value={block.id}>
+                        {block.name}
+                      </option>
+                    ))}
+                  </select>
+                  {loadingBlocks && (
+                    <p className="text-sm text-gray-500 mt-1">Loading blocks...</p>
+                  )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Flat Number *</label>
-                  <input
-                    type="text"
-                    name="flatNumber"
-                    value={formData.flatNumber}
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Flat *</label>
+                  <select
+                    name="flatId"
+                    value={formData.flatId}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    placeholder="Enter flat number"
-                  />
+                    disabled={!formData.blockId || loadingFlats}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:bg-gray-100"
+                  >
+                    <option value="">Select Flat</option>
+                    {flats.map((flat) => (
+                      <option key={flat.id} value={flat.id}>
+                        {flat.name} (Floor {flat.floorNumber})
+                      </option>
+                    ))}
+                  </select>
+                  {loadingFlats && (
+                    <p className="text-sm text-gray-500 mt-1">Loading flats...</p>
+                  )}
+                  {!formData.blockId && (
+                    <p className="text-sm text-gray-500 mt-1">Please select a block first</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -315,11 +424,57 @@ export default function AddReceiptPage() {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Receipt Document</h3>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Upload Receipt *</label>
-                <ImageUpload
-                  onFileSelect={handleFileChange}
-                  accept="image/*,.pdf"
-                  maxSize={5 * 1024 * 1024} // 5MB
-                />
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center w-full">
+                    <label htmlFor="document" className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <svg className="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                          <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                        </svg>
+                        <p className="mb-2 text-sm text-gray-500">
+                          <span className="font-semibold">Click to upload</span> receipt document
+                        </p>
+                        <p className="text-xs text-gray-500">PDF, PNG, JPG (MAX. 5MB)</p>
+                      </div>
+                      <input 
+                        id="document" 
+                        type="file" 
+                        name="document"
+                        accept="image/*,.pdf"
+                        onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
+                        className="hidden"
+                        required
+                      />
+                    </label>
+                  </div>
+                  
+                  {formData.document && (
+                    <div className="flex items-center space-x-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex-shrink-0">
+                        <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-green-800">
+                          {formData.document.name}
+                        </p>
+                        <p className="text-xs text-green-600">
+                          {(formData.document.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleFileChange(null)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <p className="text-sm text-gray-500 mt-2">
                   Supported formats: JPG, PNG, PDF. Maximum size: 5MB
                 </p>

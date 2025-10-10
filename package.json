@@ -10,7 +10,8 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma db push --force-reset && npm run db:seed",
-    "setup:ocr": "node scripts/setup-ocr-env.js"
+    "setup:ocr": "node scripts/setup-ocr-env.js",
+    "test:ocr": "node scripts/test-ocr-config.js"
   },
   "dependencies": {
     "@google-cloud/documentai": "^9.4.0",
@@ -22,6 +23,7 @@
     "cloudinary": "^2.7.0",
     "dotenv": "^17.2.2",
     "firebase": "^12.3.0",
+    "google-auth-library": "^10.4.0",
     "jotai": "^2.15.0",
     "jsonwebtoken": "^9.0.2",
     "next": "15.5.4",
