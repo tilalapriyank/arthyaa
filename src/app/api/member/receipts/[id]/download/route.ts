@@ -64,8 +64,8 @@ export async function GET(
       paymentDate: receipt.paymentDate.toISOString(),
       purpose: receipt.purpose,
       paymentMethod: receipt.paymentMethod,
-      transactionId: receipt.transactionId,
-      upiId: receipt.upiId,
+      transactionId: receipt.transactionId || undefined,
+      upiId: receipt.upiId || undefined,
       member: receipt.member,
       society: receipt.society,
       createdAt: receipt.createdAt.toISOString()
