@@ -9,9 +9,11 @@
     "lint": "eslint",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "db:reset": "prisma db push --force-reset && npm run db:seed"
+    "db:reset": "prisma db push --force-reset && npm run db:seed",
+    "setup:ocr": "node scripts/setup-ocr-env.js"
   },
   "dependencies": {
+    "@google-cloud/documentai": "^9.4.0",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.2.2",

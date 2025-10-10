@@ -1,0 +1,85 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { receiptGenerator } from '@/lib/receipt-generator';
+
+const prisma = new PrismaClient();
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user || session.user.role !== 'MEMBER') {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get receipt details
+    const receipt = await prisma.receipt.findFirst({
+      where: {
+        id: params.id,
+        memberId: session.user.id,
+        status: 'APPROVED'
+      },
+      include: {
+        member: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
+        society: {
+          select: {
+            name: true,
+            address: true,
+            city: true,
+            state: true,
+            pincode: true
+          }
+        }
+      }
+    });
+
+    if (!receipt) {
+      return NextResponse.json({ success: false, message: 'Receipt not found or not approved' }, { status: 404 });
+    }
+
+    // Generate receipt PDF
+    const receiptUrl = await receiptGenerator.generateReceiptPDF({
+      id: receipt.id,
+      blockNumber: receipt.blockNumber,
+      flatNumber: receipt.flatNumber,
+      amount: receipt.amount,
+      paymentDate: receipt.paymentDate.toISOString(),
+      purpose: receipt.purpose,
+      paymentMethod: receipt.paymentMethod,
+      transactionId: receipt.transactionId,
+      upiId: receipt.upiId,
+      member: receipt.member,
+      society: receipt.society,
+      createdAt: receipt.createdAt.toISOString()
+    });
+
+    // Update receipt with generated PDF URL
+    await prisma.receipt.update({
+      where: { id: receipt.id },
+      data: { generatedReceiptUrl: receiptUrl }
+    });
+
+    // Return the receipt URL for download
+    return NextResponse.json({
+      success: true,
+      receiptUrl
+    });
+  } catch (error) {
+    console.error('Error generating receipt download:', error);
+    return NextResponse.json(
+      { success: false, message: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

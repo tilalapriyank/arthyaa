@@ -184,6 +184,29 @@ export default function MemberLayout({
                 </div>
                 <span className="flex-1">Amenities Booking</span>
               </Link>
+
+              <Link 
+                title="Receipts" 
+                className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
+                  pathname.startsWith('/member/receipts') 
+                    ? 'text-black bg-gray-50 shadow-sm border border-gray-200' 
+                    : 'text-[#45474B] hover:bg-gray-50'
+                }`} 
+                href="/member/receipts"
+              >
+                <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
+                  pathname.startsWith('/member/receipts') ? 'text-violet-600' : 'text-[#45474B]'
+                }`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
+                    <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></line>
+                    <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></line>
+                    <polyline points="10,9 9,9 8,9" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></polyline>
+                  </svg>
+                </div>
+                <span className="flex-1">Receipts</span>
+              </Link>
             </nav>
           </div>
 

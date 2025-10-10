@@ -86,6 +86,7 @@ model User {
   // Relations
   sessions UserSession[]
   auditLogs AuditLog[]
+  receipts Receipt[]
 
   @@map("users")
 }
@@ -109,6 +110,7 @@ model Society {
   // Relations
   users   User[]
   blockList  Block[]
+  receipts Receipt[]
 
   @@map("societies")
 }
@@ -185,4 +187,59 @@ model Flat {
   block   Block @relation(fields: [blockId], references: [id])
 
   @@map("flats")
+}
+
+enum ReceiptStatus {
+  APPROVED
+  REJECTED
+}
+
+enum PaymentMethod {
+  CASH
+  UPI
+  BANK_TRANSFER
+  CHEQUE
+}
+
+model Receipt {
+  id          String   @id @default(cuid())
+  memberId    String
+  member      User     @relation(fields: [memberId], references: [id])
+  societyId   String
+  society     Society  @relation(fields: [societyId], references: [id])
+  
+  // Receipt details
+  blockNumber String
+  flatNumber  String
+  amount      Float
+  paymentDate DateTime
+  purpose     String   // maintenance, water, electricity, etc.
+  
+  // Payment method details
+  paymentMethod PaymentMethod
+  transactionId String? // For bank transfers
+  upiId        String? // For UPI payments
+  
+  // Document
+  documentUrl  String
+  documentName String
+  
+  // OCR extracted data
+  ocrData      Json?    // Store OCR extracted information
+  ocrConfidence Float?  // Confidence score from OCR
+  
+  // Manual vs OCR comparison
+  isManualEntry Boolean @default(false)
+  ocrMatchScore Float?  // How well OCR data matches manual entry
+  
+  // Status and approval
+  status       ReceiptStatus @default(APPROVED)
+  autoApproved Boolean @default(true)
+  generatedReceiptUrl String? // URL to generated receipt PDF
+  
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("receipts")
 }
