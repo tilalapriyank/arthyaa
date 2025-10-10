@@ -187,6 +187,58 @@ export default function MemberLayout({
             </nav>
           </div>
 
+          {/* Secretary Section - Only show if user is secretary */}
+          {user?.isSecretary && (
+            <div className="px-3 py-2">
+              <p className="px-1 text-xs font-normal text-gray-500 uppercase tracking-wider">SECRETARY</p>
+              <nav className="mt-2 space-y-1">
+                <Link 
+                  title="All Members" 
+                  className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
+                    pathname.startsWith('/member/secretary/members') 
+                      ? 'text-black bg-gray-50 shadow-sm border border-gray-200' 
+                      : 'text-[#45474B] hover:bg-gray-50'
+                  }`} 
+                  href="/member/secretary/members"
+                >
+                  <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
+                    pathname.startsWith('/member/secretary/members') ? 'text-violet-600' : 'text-[#45474B]'
+                  }`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
+                      <circle cx="9" cy="7" r="4" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></circle>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
+                    </svg>
+                  </div>
+                  <span className="flex-1">All Members</span>
+                </Link>
+
+                <Link 
+                  title="Add Member" 
+                  className={`flex items-center p-3 text-sm font-medium rounded-md cursor-pointer ${
+                    pathname.startsWith('/member/secretary/members/add') 
+                      ? 'text-black bg-gray-50 shadow-sm border border-gray-200' 
+                      : 'text-[#45474B] hover:bg-gray-50'
+                  }`} 
+                  href="/member/secretary/members/add"
+                >
+                  <div className={`h-4 w-4 flex-shrink-0 mr-1.5 ${
+                    pathname.startsWith('/member/secretary/members/add') ? 'text-violet-600' : 'text-[#45474B]'
+                  }`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
+                      <circle cx="8.5" cy="7" r="4" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></circle>
+                      <line x1="20" y1="8" x2="20" y2="14" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></line>
+                      <line x1="17" y1="11" x2="23" y2="11" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></line>
+                    </svg>
+                  </div>
+                  <span className="flex-1">Add Member</span>
+                </Link>
+              </nav>
+            </div>
+          )}
+
           <div className="px-3 py-2">
             <p className="px-1 text-xs font-normal text-gray-500 uppercase tracking-wider">COMMUNITY</p>
             <nav className="mt-2 space-y-1">

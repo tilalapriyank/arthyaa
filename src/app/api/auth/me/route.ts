@@ -55,6 +55,26 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // For MEMBER users (including secretaries), fetch isSecretary field
+    if (user.role === 'MEMBER') {
+      const memberDetails = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: {
+          isSecretary: true
+        }
+      });
+
+      if (memberDetails) {
+        return NextResponse.json({ 
+          success: true, 
+          user: {
+            ...user,
+            isSecretary: memberDetails.isSecretary
+          }
+        });
+      }
+    }
+
     return NextResponse.json({ success: true, user });
   } catch (error) {
     console.error('Auth check error:', error);
