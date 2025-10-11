@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -43,10 +43,6 @@ export default function SecretaryMembersPage() {
   });
   const router = useRouter();
 
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
   const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me');
@@ -63,6 +59,10 @@ export default function SecretaryMembersPage() {
       setIsLoading(false);
     }
   }, [router]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const fetchMembers = async () => {
     setIsLoadingMembers(true);
@@ -343,7 +343,8 @@ export default function SecretaryMembersPage() {
         onClose={closeDeleteDialog}
         onConfirm={confirmDeleteMember}
         title="Delete Member"
-        message={`Are you sure you want to delete ${deleteDialog.member?.firstName} ${deleteDialog.member?.lastName}? This action cannot be undone.`}
+        message={`Are you sure you want to delete this member? This action cannot be undone.`}
+        itemName={deleteDialog.member ? `${deleteDialog.member.firstName} ${deleteDialog.member.lastName}` : ''}
         isLoading={deleteDialog.isLoading}
       />
     </div>

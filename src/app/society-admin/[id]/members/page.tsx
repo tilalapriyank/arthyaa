@@ -522,7 +522,10 @@ export default function MembersPage() {
       <DocumentStatusModal
         isOpen={documentStatusModal.isOpen}
         onClose={() => setDocumentStatusModal({ isOpen: false, member: null })}
-        member={documentStatusModal.member}
+        member={documentStatusModal.member ? {
+          ...documentStatusModal.member,
+          memberType: documentStatusModal.member.memberType || 'OWNER'
+        } : null}
         onStatusUpdate={updateDocumentStatus}
       />
     </div>

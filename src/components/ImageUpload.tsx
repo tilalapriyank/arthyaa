@@ -140,11 +140,11 @@ export default function ImageUpload({
       {!uploadedImage ? (
         <div className="space-y-4">
           <FileUpload
-            onUpload={(file) => {
+            onUpload={async (file) => {
               // Create preview URL
               const url = URL.createObjectURL(file);
               setPreviewUrl(url);
-              handleUpload(file);
+              await handleUpload(file);
             }}
             category="image"
             folder={folder}

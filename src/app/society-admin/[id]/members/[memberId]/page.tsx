@@ -62,7 +62,6 @@ export default function MemberDetailsPage() {
 
       if (data.success && (data.user.role === 'SOCIETY_ADMIN' || data.user.role === 'ADMIN')) {
         setUser(data.user);
-        setSocietyId(id);
       } else {
         router.push('/admin/login');
       }
@@ -71,7 +70,7 @@ export default function MemberDetailsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [router, id]);
+  }, [router]);
 
   const fetchMemberDetails = useCallback(async () => {
     try {

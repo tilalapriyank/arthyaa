@@ -56,16 +56,6 @@ export default function AnnouncementsPage() {
     }
   }, [router, id]);
 
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
-  useEffect(() => {
-    if (user) {
-      fetchAnnouncements();
-    }
-  }, [user, fetchAnnouncements]);
-
   const fetchAnnouncements = useCallback(async () => {
     try {
       // Mock data for now - replace with actual API call
@@ -100,6 +90,16 @@ export default function AnnouncementsPage() {
       console.error('Error fetching announcements:', error);
     }
   }, []);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  useEffect(() => {
+    if (user) {
+      fetchAnnouncements();
+    }
+  }, [user, fetchAnnouncements]);
 
   const handleCreateAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();

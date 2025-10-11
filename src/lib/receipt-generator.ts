@@ -263,14 +263,15 @@ export class ReceiptGenerator {
       const htmlBuffer = Buffer.from(htmlContent, 'utf-8');
       
       // Upload to Cloudinary
-      const uploadResult = await uploadToCloudinary(htmlBuffer, 'receipts', {
+      const uploadResult = await uploadToCloudinary(htmlBuffer, {
+        folder: 'receipts',
         resource_type: 'raw',
         public_id: `receipt-${receiptId}`,
         format: 'html'
       });
 
       if (uploadResult.success) {
-        return uploadResult.url;
+        return uploadResult.secure_url!;
       } else {
         throw new Error('Failed to upload receipt');
       }

@@ -62,7 +62,7 @@ export default function MemberDetailsPage() {
       if (data.success && (data.user.role === 'SOCIETY_ADMIN' || data.user.role === 'ADMIN')) {
         setUser(data.user);
         
-        // Get user's society ID
+        // Get user's society ID (if needed for future use)
         if (data.user.role === 'SOCIETY_ADMIN') {
           const societyResponse = await fetch('/api/society-admin/settings', {
             credentials: 'include'
@@ -70,7 +70,8 @@ export default function MemberDetailsPage() {
           const societyData = await societyResponse.json();
           
           if (societyData.success && societyData.society) {
-            setSocietyId(societyData.society.id);
+            // Society ID available for future use: societyData.society.id
+            console.log('Society ID:', societyData.society.id);
           }
         }
       } else {

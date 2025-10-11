@@ -1,4 +1,4 @@
-import cloudinary from 'cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
 
 // Configure Cloudinary
 cloudinary.config({
@@ -19,6 +19,7 @@ export interface CloudinaryUploadOptions {
   resource_type?: 'image' | 'video' | 'raw' | 'auto';
   transformation?: Record<string, unknown>;
   public_id?: string;
+  format?: string;
 }
 
 /**
@@ -39,11 +40,13 @@ export async function uploadToCloudinary(
       // If it's already a Buffer, use it directly
       buffer = file;
       mimeType = 'application/octet-stream'; // Default MIME type
-    } else {
+    } else if (file instanceof File) {
       // If it's a File object, convert to buffer
       const bytes = await file.arrayBuffer();
       buffer = Buffer.from(bytes);
       mimeType = file.type;
+    } else {
+      throw new Error('Invalid file type. Expected File or Buffer.');
     }
 
     // Convert buffer to base64 string
@@ -56,6 +59,7 @@ export async function uploadToCloudinary(
       resource_type: options.resource_type || 'auto',
       transformation: options.transformation,
       public_id: options.public_id,
+      format: options.format,
     });
 
     return {

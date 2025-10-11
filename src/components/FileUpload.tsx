@@ -53,6 +53,25 @@ export default function FileUpload({
     return types[category];
   };
 
+  const getAllowedTypes = () => {
+    const types = {
+      image: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
+      document: [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/plain',
+        'text/csv'
+      ],
+      pdf: ['application/pdf'],
+      all: ['*']
+    };
+    
+    return types[category];
+  };
+
 
   const handleFileSelect = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;

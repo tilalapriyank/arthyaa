@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
@@ -62,16 +62,6 @@ export default function AddReceiptPage() {
   } | null>(null);
   const [showApprovalResult, setShowApprovalResult] = useState(false);
 
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
-  useEffect(() => {
-    if (user?.societyId) {
-      fetchBlocks();
-    }
-  }, [user?.societyId, fetchBlocks]);
-
   const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me');
@@ -110,6 +100,16 @@ export default function AddReceiptPage() {
       setLoadingBlocks(false);
     }
   }, [user?.societyId]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  useEffect(() => {
+    if (user?.societyId) {
+      fetchBlocks();
+    }
+  }, [user?.societyId, fetchBlocks]);
 
   const fetchFlats = async (blockId: string) => {
     setLoadingFlats(true);

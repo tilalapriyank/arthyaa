@@ -59,12 +59,7 @@ export class OCRService {
           credentials: credentials
         });
         this.client = new DocumentProcessorServiceClient({
-          auth: auth,
-          // gRPC client options for OpenSSL 3.x compatibility
-          grpc: {
-            'grpc.ssl_target_name_override': undefined,
-            'grpc.default_authority': undefined,
-          } as Record<string, unknown>
+          auth: auth
         });
         console.log('✅ Client initialized via GOOGLE_CLOUD_CREDENTIALS');
       } else if (process.env.GOOGLE_CLOUD_CLIENT_EMAIL && process.env.GOOGLE_CLOUD_PRIVATE_KEY) {
@@ -106,12 +101,7 @@ export class OCRService {
 
         console.log('Creating DocumentProcessorServiceClient...');
         this.client = new DocumentProcessorServiceClient({
-          auth: auth,
-          // gRPC client options for OpenSSL 3.x compatibility
-          grpc: {
-            'grpc.ssl_target_name_override': undefined,
-            'grpc.default_authority': undefined,
-          } as Record<string, unknown>
+          auth: auth
         });
 
         console.log('✅ Google Cloud Document AI client initialized successfully');

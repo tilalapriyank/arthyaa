@@ -54,16 +54,6 @@ export default function DuesPage() {
     }
   }, [router, id]);
 
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
-  useEffect(() => {
-    if (user) {
-      fetchDues();
-    }
-  }, [user, fetchDues]);
-
   const fetchDues = useCallback(async () => {
     try {
       // Mock data for now - replace with actual API call
@@ -110,6 +100,16 @@ export default function DuesPage() {
       console.error('Error fetching dues:', error);
     }
   }, []);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  useEffect(() => {
+    if (user) {
+      fetchDues();
+    }
+  }, [user, fetchDues]);
 
   const filterDues = useCallback(() => {
     let filtered = [...dues];

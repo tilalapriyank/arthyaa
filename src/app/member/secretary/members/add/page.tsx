@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
@@ -12,6 +12,7 @@ interface User {
   firstName?: string;
   lastName?: string;
   isSecretary?: boolean;
+  societyId?: string;
 }
 
 interface FormData {
@@ -48,26 +49,6 @@ export default function SecretaryAddMemberPage() {
   const [loadingBlocks, setLoadingBlocks] = useState(false);
   const [loadingFlats, setLoadingFlats] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
-  // Fetch blocks when user is loaded
-  useEffect(() => {
-    if (user?.societyId) {
-      fetchBlocks();
-    }
-  }, [user, fetchBlocks]);
-
-  // Fetch flats when block is selected
-  useEffect(() => {
-    if (formData.blockId) {
-      fetchFlats(formData.blockId);
-    } else {
-      setFlats([]);
-    }
-  }, [formData.blockId]);
 
   const checkAuth = useCallback(async () => {
     try {
@@ -107,6 +88,26 @@ export default function SecretaryAddMemberPage() {
       setLoadingBlocks(false);
     }
   }, [user?.societyId]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  // Fetch blocks when user is loaded
+  useEffect(() => {
+    if (user?.societyId) {
+      fetchBlocks();
+    }
+  }, [user, fetchBlocks]);
+
+  // Fetch flats when block is selected
+  useEffect(() => {
+    if (formData.blockId) {
+      fetchFlats(formData.blockId);
+    } else {
+      setFlats([]);
+    }
+  }, [formData.blockId]);
 
   const fetchFlats = async (blockId: string) => {
     setLoadingFlats(true);
